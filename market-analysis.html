@@ -42,6 +42,55 @@
     </div>
   </section>
 
+<!-- TRADESPHERE LIVE DERIV DASHBOARD -->
+<section class="live-dashboard-section" id="live-dashboard">
+  <div class="analysis-container">
+
+    <div class="live-dashboard-heading">
+      <div>
+        <span class="eyebrow">LIVE MARKET DATA</span>
+        <h2>Deriv Synthetic Watchlist</h2>
+        <p>Monitor live prices from selected Deriv synthetic indices.</p>
+      </div>
+
+      <button id="refreshLiveMarkets" class="live-refresh-button">
+        ↻ Reconnect
+      </button>
+    </div>
+
+    <div class="live-status-panel">
+      <div class="live-status-left">
+        <span id="liveStatusDot" class="status-dot"></span>
+        <span id="liveConnectionStatus" aria-live="polite">
+          Connecting to Deriv...
+        </span>
+      </div>
+
+      <div class="live-status-right">
+        <span>Last update:</span>
+        <strong id="liveLastUpdate">Waiting for data</strong>
+      </div>
+    </div>
+
+    <div class="live-dashboard-note">
+      Prices are streamed from Deriv's public market-data API.
+      A missing price means that the instrument has not yet returned
+      a valid tick or is unavailable through this feed.
+    </div>
+
+    <div class="live-market-grid" id="liveMarketGrid">
+      <p class="live-loading">Loading market instruments...</p>
+    </div>
+
+    <div class="live-disclaimer">
+      Market data is provided for educational and informational purposes.
+      It is not a trade signal or a guarantee of execution price.
+      Always verify prices on your trading platform before placing a trade.
+    </div>
+
+  </div>
+</section>
+  
   <section class="analysis-section" id="market-workspace">
     <div class="analysis-container">
       <div class="section-heading">
@@ -287,5 +336,5 @@
 
 <script src="market-analysis.js"></script>
 </body>
-                                                                                  </html>
+<script src="market-dashboard.js"></script>                                                                                  </html>
                                                                                   
