@@ -1,0 +1,288 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Trading education, market analysis, mentorship and automated trading technology.">
+    <title>TradeSphere | Trading Ecosystem</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<header class="navbar">
+    <a href="#home" class="logo">Trade<span>Sphere.</span></a>
+
+    <button class="menu-toggle" id="menuToggle"
+        aria-label="Toggle navigation" aria-expanded="false">
+        ☰
+    </button>
+
+    <nav id="navMenu">
+        <a href="#home">Home</a>
+        <a href="#academy">Academy</a>
+        <a href="#analysis">Analysis</a>
+        <a href="#technology">Technology</a>
+        <a href="#mentorship">Mentorship</a>
+    </nav>
+
+    <a href="#contact" class="nav-button">Get Started</a>
+</header>
+
+<main>
+
+<!-- HERO SECTION -->
+<section class="hero" id="home">
+
+    <div class="hero-content">
+        <span class="tag">YOUR TRADING JOURNEY STARTS HERE</span>
+
+        <h1>
+            Trade Smarter.<br>
+            <span>Think Deeper.</span><br>
+            Build Consistency.
+        </h1>
+
+        <p>
+            A trading ecosystem built around education,
+            market intelligence, technology and disciplined
+            trading strategies.
+        </p>
+
+        <div class="hero-buttons">
+            <a href="#academy" class="btn primary">Explore Academy</a>
+            <a href="#technology" class="btn secondary">Explore Technology</a>
+        </div>
+
+        <div class="hero-note">
+            Education • Analysis • Technology • Mentorship
+        </div>
+    </div>
+
+    <div class="hero-visual">
+        <div class="chart-card">
+            <div class="chart-header">
+                <span>MARKET INTELLIGENCE</span>
+                <span class="live-dot">● DEMO</span>
+            </div>
+
+            <div class="chart-symbol">XAUUSD</div>
+            <div class="chart-description">
+                Gold market analysis
+            </div>
+
+            <div class="chart-placeholder">
+                <svg viewBox="0 0 500 180" role="img"
+                    aria-label="Illustrative trading chart">
+                    <polyline
+                        points="0,130 35,110 70,125 105,80 140,100 175,60 210,85 245,35 280,55 315,25 350,60 385,40 420,65 460,15 500,30"
+                        fill="none"
+                        stroke="#18d89a"
+                        stroke-width="3"
+                        stroke-linejoin="round"
+                    />
+                </svg>
+            </div>
+
+            <p class="chart-footer">
+                Illustrative chart — not live market data.
+            </p>
+        </div>
+    </div>
+
+</section>
+
+<!-- SERVICES -->
+<section class="section" id="services">
+    <div class="section-heading">
+        <span class="tag">WHAT WE OFFER</span>
+        <h2>One Ecosystem. <span>Multiple Opportunities.</span></h2>
+        <p>Everything a developing trader needs in one platform.</p>
+    </div>
+
+    <div class="services-grid">
+
+        <article class="service-card">
+            <div class="service-icon">📚</div>
+            <h3>Trading Academy</h3>
+            <p>Learn price action, SMC, ICT, CRT and professional risk management.</p>
+            <a href="#academy">Explore Academy →</a>
+        </article>
+
+        <article class="service-card">
+            <div class="service-icon">📊</div>
+            <h3>Market Analysis</h3>
+            <p>Explore technical analysis, market structure and fundamental insights.</p>
+            <a href="#analysis">View Analysis →</a>
+        </article>
+
+        <article class="service-card">
+            <div class="service-icon">🤖</div>
+            <h3>Trading Technology</h3>
+            <p>Discover MT5 Expert Advisors, indicators and automated systems.</p>
+            <a href="#technology">Explore Tools →</a>
+        </article>
+
+        <article class="service-card">
+            <div class="service-icon">🎯</div>
+            <h3>Mentorship</h3>
+            <p>Develop your trading skills through structured individual guidance.</p>
+            <a href="#mentorship">Find Mentorship →</a>
+        </article>
+
+    </div>
+</section>
+
+<!-- ACADEMY -->
+<section class="section dark-section" id="academy">
+    <div class="section-heading">
+        <span class="tag">EDUCATION</span>
+        <h2>Master the <span>Markets.</span></h2>
+        <p>Structured learning for traders at every stage.</p>
+    </div>
+
+    <div class="course-grid">
+
+        <article class="course-card">
+            <span class="course-level">BEGINNER</span>
+            <h3>Trading Foundations</h3>
+            <p>Forex fundamentals, candlesticks, market structure and risk management.</p>
+            <span class="course-status">Coming soon</span>
+        </article>
+
+        <article class="course-card">
+            <span class="course-level">INTERMEDIATE</span>
+            <h3>Smart Money Concepts</h3>
+            <p>Liquidity, order blocks, fair value gaps, BOS and CHoCH.</p>
+            <span class="course-status">Coming soon</span>
+        </article>
+
+        <article class="course-card">
+            <span class="course-level">ADVANCED</span>
+            <h3>CRT & Advanced Price Action</h3>
+            <p>Range theory, AMD, SMT and multi-timeframe analysis.</p>
+            <span class="course-status">Coming soon</span>
+        </article>
+
+    </div>
+</section>
+
+<!-- ANALYSIS -->
+<section class="section" id="analysis">
+    <div class="section-heading">
+        <span class="tag">MARKET INTELLIGENCE</span>
+        <h2>Understand the <span>Market.</span></h2>
+        <p>Explore the instruments covered by our analysis.</p>
+    </div>
+
+    <div class="market-grid">
+
+        <div class="market-card">
+            <h3>Forex</h3>
+            <p>Major and minor currency pairs.</p>
+            <span>EURUSD • GBPUSD • USDJPY</span>
+        </div>
+
+        <div class="market-card">
+            <h3>Metals</h3>
+            <p>Precious metals market analysis.</p>
+            <span>XAUUSD • XAGUSD</span>
+        </div>
+
+        <div class="market-card">
+            <h3>Synthetic Indices</h3>
+            <p>Deriv synthetic market education.</p>
+            <span>Volatility Indices</span>
+        </div>
+
+    </div>
+</section>
+
+<!-- TECHNOLOGY -->
+<section class="section dark-section" id="technology">
+    <div class="section-heading">
+        <span class="tag">TRADING TECHNOLOGY</span>
+        <h2>Technology Meets <span>Strategy.</span></h2>
+        <p>Tools designed to support systematic trading.</p>
+    </div>
+
+    <div class="product-grid">
+
+        <article class="product-card">
+            <div class="product-icon">🤖</div>
+            <h3>SMC Expert Advisor</h3>
+            <p>Automated strategy development for MetaTrader 5.</p>
+            <span class="product-label">Coming soon</span>
+        </article>
+
+        <article class="product-card">
+            <div class="product-icon">📈</div>
+            <h3>CRT Indicator</h3>
+            <p>Trading range analysis and visual market tools.</p>
+            <span class="product-label">Coming soon</span>
+        </article>
+
+        <article class="product-card">
+            <div class="product-icon">⚙️</div>
+            <h3>Custom Automation</h3>
+            <p>Custom trading systems and indicator development.</p>
+            <span class="product-label">Coming soon</span>
+        </article>
+
+    </div>
+</section>
+
+<!-- MENTORSHIP -->
+<section class="section mentorship" id="mentorship">
+    <div>
+        <span class="tag">PERSONAL DEVELOPMENT</span>
+        <h2>Learn With <span>Direction.</span></h2>
+        <p>
+            Get structured trading guidance, strategy development
+            support and individual mentorship.
+        </p>
+        <a href="#contact" class="btn primary">Enquire About Mentorship</a>
+    </div>
+</section>
+
+<!-- CONTACT -->
+<section class="section contact-section" id="contact">
+    <div class="section-heading">
+        <span class="tag">GET IN TOUCH</span>
+        <h2>Start Your <span>Journey.</span></h2>
+        <p>Connect with us to learn more about the platform.</p>
+    </div>
+
+    <a href="https://wa.me/254700000000"
+       target="_blank"
+       rel="noopener noreferrer"
+       class="btn primary">
+       Contact Us on WhatsApp
+    </a>
+    <p class="small-note">Replace the example number with your business WhatsApp number.</p>
+</section>
+
+</main>
+
+<footer>
+    <a href="#home" class="logo">Trade<span>Sphere.</span></a>
+
+    <p>Education. Analysis. Technology.</p>
+
+    <p class="disclaimer">
+        Trading involves risk. Educational materials and market
+        analysis do not guarantee profits. Always practise
+        responsible risk management.
+    </p>
+
+    <p>© <span id="year"></span> TradeSphere. All rights reserved.</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
