@@ -4,267 +4,772 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="TradeSphere market analysis and trading education.">
-  <title>Market Analysis | TradeSphere</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="market-analysis.css">
+  <title>TradeSphere | Live Market Dashboard</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #071510;
+      color: #e8f2ed;
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 22px 5%;
+      background: #0c2018;
+      border-bottom: 1px solid #1c3b2c;
+    }
+
+    .brand {
+      color: #54d69a;
+      font-size: 23px;
+      font-weight: 800;
+    }
+
+    .subtitle {
+      color: #9bb4a7;
+      margin-top: 6px;
+      font-size: 13px;
+    }
+
+    main {
+      width: 90%;
+      max-width: 1200px;
+      margin: 35px auto;
+    }
+
+    .heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 22px;
+    }
+
+    h1 {
+      font-size: 25px;
+      margin-bottom: 7px;
+    }
+
+    .description {
+      color: #9bb4a7;
+      font-size: 13px;
+    }
+
+    .connection {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      background: #10271d;
+      border: 1px solid #244735;
+      border-radius: 30px;
+      padding: 10px 15px;
+      font-size: 13px;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      background: #e6aa46;
+      border-radius: 50%;
+    }
+
+    .status-dot.connected {
+      background: #35d68b;
+      box-shadow: 0 0 9px #35d68b;
+    }
+
+    .status-dot.disconnected {
+      background: #e45b5b;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #0c2018;
+      border: 1px solid #1c3b2c;
+      border-radius: 12px;
+    }
+
+    .update-info {
+      color: #9bb4a7;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    button {
+      background: #25b879;
+      color: #06150e;
+      border: none;
+      border-radius: 7px;
+      padding: 10px 17px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #42d795;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .market-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .market-card {
+      background: #10241a;
+      border: 1px solid #214332;
+      border-radius: 12px;
+      padding: 19px;
+      min-width: 0;
+    }
+
+    .market-card h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #dcebe2;
+    }
+
+    .market-category {
+      color: #789687;
+      font-size: 11px;
+      margin-top: 5px;
+    }
+
+    .price {
+      font-size: 25px;
+      font-weight: 700;
+      margin-top: 22px;
+      color: #f0f7f2;
+      overflow-wrap: anywhere;
+    }
+
+    .price.up {
+      color: #42d795;
+    }
+
+    .price.down {
+      color: #ff7777;
+    }
+
+    .card-status {
+      color: #8ca99a;
+      font-size: 11px;
+      margin-top: 10px;
+    }
+
+    .message {
+      background: #172a20;
+      border: 1px solid #38503f;
+      border-radius: 9px;
+      padding: 14px;
+      margin-bottom: 18px;
+      color: #c5d8cc;
+      font-size: 13px;
+      line-height: 1.6;
+      display: none;
+    }
+
+    .message.visible {
+      display: block;
+    }
+
+    .message.error {
+      border-color: #874747;
+      color: #ffb4b4;
+    }
+
+    .footer {
+      margin-top: 30px;
+      color: #718e7e;
+      font-size: 11px;
+      text-align: center;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 850px) {
+      .market-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 520px) {
+      main {
+        width: 92%;
+        margin-top: 25px;
+      }
+
+      .market-grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 21px;
+      }
+
+      .price {
+        font-size: 23px;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<header class="analysis-header">
-  <a href="index.html" class="analysis-logo">Trade<span>Sphere</span></a>
+  <header>
+    <div class="brand">TradeSphere</div>
+    <div class="subtitle">Synthetic Indices Trading Ecosystem</div>
+  </header>
 
-  <button class="analysis-menu" id="menuToggle"
-    aria-label="Toggle navigation" aria-expanded="false">
-    ☰
-  </button>
+  <main>
 
-  <nav class="analysis-nav" id="mainNav">
-    <a href="index.html">Home</a>
-    <a href="academy.html">Academy</a>
-    <a href="market-analysis.html" class="active">Market Analysis</a>
-    <a href="index.html#technology">Technology</a>
-    <a href="index.html#mentorship">Mentorship</a>
-  </nav>
-</header>
-
-<main>
-
-  <section class="analysis-hero">
-    <div class="analysis-container">
-      <span class="eyebrow">TRADESPHERE MARKET INTELLIGENCE</span>
-      <h1>Understand the market.<br><span>Trade with a plan.</span></h1>
-      <p>
-        Explore market behaviour through technical analysis, price action,
-        market structure and disciplined risk management.
-      </p>
-      <a href="#market-workspace" class="analysis-button">Explore markets</a>
-    </div>
-  </section>
-
-<!-- TRADESPHERE LIVE DERIV DASHBOARD -->
-<section class="live-dashboard-section" id="live-dashboard">
-  <div class="analysis-container">
-
-    <div class="live-dashboard-heading">
+    <section class="heading">
       <div>
-        <span class="eyebrow">LIVE MARKET DATA</span>
-        <h2>Deriv Synthetic Watchlist</h2>
-        <p>Monitor live prices from selected Deriv synthetic indices.</p>
+        <h1>Market Analysis</h1>
+        <p class="description">
+          Live Deriv synthetic indices market prices
+        </p>
       </div>
 
-      <button id="refreshLiveMarkets" class="live-refresh-button">
-        ↻ Reconnect
-      </button>
-    </div>
-
-    <div class="live-status-panel">
-      <div class="live-status-left">
+      <div class="connection">
         <span id="liveStatusDot" class="status-dot"></span>
-        <span id="liveConnectionStatus" aria-live="polite">
-          Connecting to Deriv...
-        </span>
+        <span id="liveConnectionStatus">Connecting to Deriv...</span>
+      </div>
+    </section>
+
+    <section class="toolbar">
+      <div class="update-info">
+        <div id="instrumentCount">Matched instruments: 0/12</div>
+        <div id="liveLastUpdate">Last update: Waiting for data</div>
       </div>
 
-      <div class="live-status-right">
-        <span>Last update:</span>
-        <strong id="liveLastUpdate">Waiting for data</strong>
-      </div>
+      <button id="refreshLiveMarkets" type="button">
+        Reconnect
+      </button>
+    </section>
+
+    <div id="dashboardMessage" class="message visible">
+      Loading market instruments...
     </div>
 
-    <div class="live-dashboard-note">
-      Prices are streamed from Deriv's public market-data API.
-      A missing price means that the instrument has not yet returned
-      a valid tick or is unavailable through this feed.
+    <section id="liveMarketGrid" class="market-grid"></section>
+
+    <div class="footer">
+      Market prices are supplied by Deriv's public market-data feed.
+      <br>
+      TradeSphere does not execute trades or guarantee trading results.
     </div>
 
-    <div class="live-market-grid" id="liveMarketGrid">
-      <p class="live-loading">Loading market instruments...</p>
-    </div>
+  </main>
 
-    <div class="live-disclaimer">
-      Market data is provided for educational and informational purposes.
-      It is not a trade signal or a guarantee of execution price.
-      Always verify prices on your trading platform before placing a trade.
-    </div>
+  <script>
+    "use strict";
 
-  </div>
-</section>
-  
-  <section class="analysis-section" id="market-workspace">
-    <div class="analysis-container">
-      <div class="section-heading">
-        <span class="eyebrow">MARKET WORKSPACE</span>
-        <h2>Explore asset classes</h2>
-        <p>Select a market category to explore its analysis framework.</p>
-      </div>
+    // --------------------------------------------------
+    // 1. DERIV CONNECTION
+    // --------------------------------------------------
 
-      <div class="market-filters">
-        <button class="market-filter active" data-filter="all">All markets</button>
-        <button class="market-filter" data-filter="forex">Forex</button>
-        <button class="market-filter" data-filter="metals">Metals</button>
-        <button class="market-filter" data-filter="synthetic">Synthetic indices</button>
-      </div>
+    const DERIV_PUBLIC_URL =
+      "wss://api.derivws.com/trading/v1/options/ws/public";
 
-      <div class="market-grid">
+    // --------------------------------------------------
+    // 2. INSTRUMENTS REQUIRED
+    // --------------------------------------------------
 
-        <article class="market-card" data-market="forex">
-          <span class="market-tag">FOREX</span>
-          <h3>EUR/USD</h3>
-          <p>Study the relationship between the euro and US dollar.</p>
-          <div class="market-meta">Currency pair</div>
-          <button class="framework-button" data-asset="EUR/USD">View framework ↗</button>
-        </article>
+    const instruments = [
+      { name: "Volatility 75", aliases: ["R_75"] },
+      { name: "Volatility 50", aliases: ["R_50"] },
+      { name: "Boom 1000", aliases: ["BOOM1000"] },
+      { name: "Crash 1000", aliases: ["CRASH1000"] },
+      { name: "Crash 500", aliases: ["CRASH500"] },
+      { name: "Step Index", aliases: ["STP"] },
+      { name: "Boom 500", aliases: ["BOOM500"] },
+      { name: "Volatility 250", aliases: ["R_250"] },
+      { name: "Volatility 150", aliases: ["R_150"] },
+      { name: "Volatility 100", aliases: ["R_100"] },
+      { name: "Volatility 25", aliases: ["R_25"] },
+      { name: "Volatility 10", aliases: ["R_10"] }
+    ];
 
-        <article class="market-card" data-market="forex">
-          <span class="market-tag">FOREX</span>
-          <h3>GBP/USD</h3>
-          <p>Explore trend structure, liquidity and major economic drivers.</p>
-          <div class="market-meta">Currency pair</div>
-          <button class="framework-button" data-asset="GBP/USD">View framework ↗</button>
-        </article>
+    // --------------------------------------------------
+    // 3. HTML ELEMENTS
+    // --------------------------------------------------
 
-        <article class="market-card" data-market="forex">
-          <span class="market-tag">FOREX</span>
-          <h3>USD/JPY</h3>
-          <p>Examine price action and the influence of monetary policy.</p>
-          <div class="market-meta">Currency pair</div>
-          <button class="framework-button" data-asset="USD/JPY">View framework ↗</button>
-        </article>
+    const grid = document.getElementById("liveMarketGrid");
+    const connectionStatus =
+      document.getElementById("liveConnectionStatus");
+    const statusDot = document.getElementById("liveStatusDot");
+    const lastUpdate = document.getElementById("liveLastUpdate");
+    const instrumentCount =
+      document.getElementById("instrumentCount");
+    const messageBox = document.getElementById("dashboardMessage");
+    const reconnectButton =
+      document.getElementById("refreshLiveMarkets");
 
-        <article class="market-card" data-market="metals">
-          <span class="market-tag">METALS</span>
-          <h3>XAU/USD</h3>
-          <p>Study gold using market structure, liquidity and key price levels.</p>
-          <div class="market-meta">Gold against the US dollar</div>
-          <button class="framework-button" data-asset="XAU/USD">View framework ↗</button>
-        </article>
+    // --------------------------------------------------
+    // 4. CONNECTION STATE
+    // --------------------------------------------------
 
-        <article class="market-card" data-market="metals">
-          <span class="market-tag">METALS</span>
-          <h3>XAG/USD</h3>
-          <p>Explore silver price behaviour, volatility and market structure.</p>
-          <div class="market-meta">Silver against the US dollar</div>
-          <button class="framework-button" data-asset="XAG/USD">View framework ↗</button>
-        </article>
+    let socket = null;
+    let reconnectTimer = null;
+    let reconnectAttempts = 0;
+    let manuallyClosed = false;
+    let matchedCount = 0;
 
-        <article class="market-card" data-market="synthetic">
-          <span class="market-tag">SYNTHETIC</span>
-          <h3>Volatility Indices</h3>
-          <p>Study synthetic-market price behaviour and volatility.</p>
-          <div class="market-meta">Deriv synthetic indices</div>
-          <button class="framework-button" data-asset="Volatility Indices">View framework ↗</button>
-        </article>
+    const marketState = {};
 
-        <article class="market-card" data-market="synthetic">
-          <span class="market-tag">SYNTHETIC</span>
-          <h3>Boom & Crash</h3>
-          <p>Explore directional movement, spikes and liquidity behaviour.</p>
-          <div class="market-meta">Deriv synthetic indices</div>
-          <button class="framework-button" data-asset="Boom & Crash">View framework ↗</button>
-        </article>
+    instruments.forEach((instrument, index) => {
+      marketState[instrument.name] = {
+        symbol: null,
+        price: null,
+        previousPrice: null,
+        pipSize: 2,
+        updatedAt: null,
+        cardId: "market-card-" + index
+      };
+    });
 
-        <article class="market-card" data-market="synthetic">
-          <span class="market-tag">SYNTHETIC</span>
-          <h3>Step Indices</h3>
-          <p>Examine structured price movement and technical levels.</p>
-          <div class="market-meta">Deriv synthetic indices</div>
-          <button class="framework-button" data-asset="Step Indices">View framework ↗</button>
-        </article>
+    // --------------------------------------------------
+    // 5. CREATE MARKET CARDS
+    // --------------------------------------------------
 
-      </div>
-    </div>
-  </section>
+    function renderMarketCards() {
+      grid.replaceChildren();
 
-  <section class="analysis-section analysis-alt">
-    <div class="analysis-container">
-      <div class="section-heading">
-        <span class="eyebrow">OUR APPROACH</span>
-        <h2>How we analyse a market</h2>
-        <p>A repeatable process helps separate a trading plan from a guess.</p>
-      </div>
+      instruments.forEach((instrument, index) => {
+        const card = document.createElement("article");
+        card.className = "market-card";
+        card.id = marketState[instrument.name].cardId;
 
-      <div class="process-grid">
-        <article class="process-card">
-          <span>01</span>
-          <h3>Higher-timeframe bias</h3>
-          <p>Start with the Daily and H4 charts. Identify direction, range and important levels.</p>
-        </article>
+        const title = document.createElement("h3");
+        title.textContent = instrument.name;
 
-        <article class="process-card">
-          <span>02</span>
-          <h3>Market structure</h3>
-          <p>Study swing highs, swing lows, BOS, CHoCH and potential liquidity areas.</p>
-        </article>
+        const category = document.createElement("div");
+        category.className = "market-category";
+        category.textContent = "Deriv Synthetic Index";
 
-        <article class="process-card">
-          <span>03</span>
-          <h3>Entry confirmation</h3>
-          <p>Use lower timeframes to look for a clear reaction, displacement and a defined entry.</p>
-        </article>
+        const price = document.createElement("div");
+        price.className = "price";
+        price.id = "price-" + index;
+        price.textContent = "--";
 
-        <article class="process-card">
-          <span>04</span>
-          <h3>Risk management</h3>
-          <p>Define invalidation, stop loss, position size and potential reward before entering.</p>
-        </article>
-      </div>
-    </div>
-  </section>
+        const status = document.createElement("div");
+        status.className = "card-status";
+        status.id = "status-" + index;
+        status.textContent = "Waiting for price...";
 
-  <section class="analysis-section">
-    <div class="analysis-container">
-      <div class="section-heading">
-        <span class="eyebrow">ANALYSIS TEMPLATE</span>
-        <h2>Build a trading scenario</h2>
-        <p>Use this framework to organise your own market analysis.</p>
-      </div>
+        card.append(title, category, price, status);
+        grid.appendChild(card);
+      });
+    }
 
-      <div class="scenario-panel">
-        <div class="scenario-warning">
-          Educational template — no live market data or trade signal is being provided.
-        </div>
+    // --------------------------------------------------
+    // 6. CONNECTION STATUS
+    // --------------------------------------------------
 
-        <div class="scenario-grid">
-          <div>
-            <label for="scenarioAsset">Instrument</label>
-            <input id="scenarioAsset" type="text" placeholder="e.g. XAU/USD">
-          </div>
+    function setConnectionStatus(status, type = "") {
+      connectionStatus.textContent = status;
+      statusDot.className = "status-dot " + type;
+    }
 
-          <div>
-            <label for="scenarioTimeframe">Timeframe</label>
-            <select id="scenarioTimeframe">
-              <option value="">Select timeframe</option>
-              <option>Daily</option>
-              <option>H4</option>
-              <option>H1</option>
-              <option>M30</option>
-              <option>M15</option>
-              <option>M5</option>
-            </select>
-          </div>
+    function showMessage(message, error = false) {
+      messageBox.textContent = message;
+      messageBox.className = error
+        ? "message visible error"
+        : "message visible";
+    }
 
-          <div>
-            <label for="scenarioBias">Market bias</label>
-            <select id="scenarioBias">
-              <option value="">Select bias</option>
-              <option>Bullish</option>
-              <option>Bearish</option>
-              <option>Consolidating</option>
-              <option>Unclear</option>
-            </select>
-          </div>
+    function hideMessage() {
+      messageBox.className = "message";
+    }
 
-          <div>
-            <label for="scenarioSetup">Potential setup</label>
-            <select id="scenarioSetup">
-              <option value="">Select setup</option>
-              <option>Liquidity sweep</option>
-              <option>BOS / CHoCH</option>
-              <option>Order block</option>
-              <option>Fair value gap</option>
-              <option>Support / resistance</option>
-              <option>CRT</option>
+    // --------------------------------------------------
+    // 7. NORMALISE NAMES FOR MATCHING
+    // --------------------------------------------------
+
+    function normaliseName(value) {
+      return String(value || "")
+        .toLowerCase()
+        .replace(/\bindex\b/g, "")
+        .replace(/[^a-z0-9]/g, "");
+    }
+
+    function findInstrument(activeSymbol) {
+      const displayName = normaliseName(
+        activeSymbol.display_name
+      );
+
+      const symbol = String(
+        activeSymbol.symbol || ""
+      ).toUpperCase();
+
+      return instruments.find(instrument => {
+        const requestedName = normaliseName(instrument.name);
+
+        if (displayName === requestedName) {
+          return true;
+        }
+
+        return instrument.aliases.some(alias =>
+          alias.toUpperCase() === symbol
+        );
+      });
+    }
+
+    // --------------------------------------------------
+    // 8. UPDATE PRICE ON SCREEN
+    // --------------------------------------------------
+
+    function updateMarketCard(name, tick) {
+      const state = marketState[name];
+
+      if (!state) return;
+
+      const quote = Number(tick.quote);
+
+      if (!Number.isFinite(quote)) return;
+
+      const index = instruments.findIndex(
+        item => item.name === name
+      );
+
+      state.previousPrice = state.price;
+      state.price = quote;
+      state.updatedAt = new Date(
+        Number(tick.epoch || Date.now() / 1000) * 1000
+      );
+
+      if (Number.isInteger(Number(tick.pip_size))) {
+        state.pipSize = Math.max(
+          0,
+          Math.min(10, Number(tick.pip_size))
+        );
+      }
+
+      const priceElement =
+        document.getElementById("price-" + index);
+
+      const statusElement =
+        document.getElementById("status-" + index);
+
+      if (!priceElement || !statusElement) return;
+
+      priceElement.textContent = quote.toFixed(state.pipSize);
+
+      priceElement.classList.remove("up", "down");
+
+      if (state.previousPrice !== null) {
+        if (quote > state.previousPrice) {
+          priceElement.classList.add("up");
+        } else if (quote < state.previousPrice) {
+          priceElement.classList.add("down");
+        }
+      }
+
+      statusElement.textContent = "Live price received";
+
+      lastUpdate.textContent =
+        "Last update: " + state.updatedAt.toLocaleTimeString();
+    }
+
+    // --------------------------------------------------
+    // 9. SUBSCRIBE TO MATCHED INSTRUMENTS
+    // --------------------------------------------------
+
+    function subscribeToMarkets(activeSymbols) {
+      matchedCount = 0;
+
+      instruments.forEach(instrument => {
+        const state = marketState[instrument.name];
+        state.symbol = null;
+
+        const match = activeSymbols.find(
+          item => findInstrument(item) === instrument
+        );
+
+        const index = instruments.indexOf(instrument);
+        const statusElement =
+          document.getElementById("status-" + index);
+
+        if (!match) {
+          statusElement.textContent = "Instrument not found";
+          return;
+        }
+
+        const actualSymbol = match.symbol;
+
+        if (!actualSymbol) {
+          statusElement.textContent = "Symbol unavailable";
+          return;
+        }
+
+        state.symbol = actualSymbol;
+        matchedCount++;
+
+        statusElement.textContent = "Subscribing...";
+
+        socket.send(JSON.stringify({
+          ticks: actualSymbol,
+          subscribe: 1
+        }));
+      });
+
+      instrumentCount.textContent =
+        "Matched instruments: " +
+        matchedCount + "/" + instruments.length;
+
+      if (matchedCount === 0) {
+        showMessage(
+          "Connected to Deriv, but none of the requested instruments matched. Check the available instrument names.",
+          true
+        );
+      } else if (matchedCount < instruments.length) {
+        showMessage(
+          matchedCount + " of " + instruments.length +
+          " instruments matched. Unmatched instruments are marked on their cards."
+        );
+      } else {
+        showMessage(
+          "All 12 instruments matched. Waiting for live price updates..."
+        );
+      }
+    }
+
+    // --------------------------------------------------
+    // 10. PROCESS DERIV MESSAGES
+    // --------------------------------------------------
+
+    function handleMessage(event) {
+      let data;
+
+      try {
+        data = JSON.parse(event.data);
+      } catch (error) {
+        console.error("Invalid Deriv message:", event.data);
+        return;
+      }
+
+      if (data.error) {
+        console.error("Deriv API error:", data.error);
+
+        showMessage(
+          "Deriv error: " +
+          (data.error.message || "Unknown API error"),
+          true
+        );
+
+        return;
+      }
+
+      if (data.msg_type === "active_symbols") {
+        const activeSymbols = data.active_symbols || [];
+
+        if (!Array.isArray(activeSymbols)) {
+          showMessage(
+            "Deriv returned an unexpected instruments response.",
+            true
+          );
+          return;
+        }
+
+        subscribeToMarkets(activeSymbols);
+        return;
+      }
+
+      if (data.msg_type === "tick" && data.tick) {
+        const tick = data.tick;
+
+        const instrument = instruments.find(item =>
+          marketState[item.name].symbol === tick.symbol
+        );
+
+        if (instrument) {
+          updateMarketCard(instrument.name, tick);
+          hideMessage();
+        }
+      }
+    }
+
+    // --------------------------------------------------
+    // 11. CONNECT TO DERIV
+    // --------------------------------------------------
+
+    function connectToDeriv() {
+      clearTimeout(reconnectTimer);
+      manuallyClosed = false;
+
+      if (
+        socket &&
+        (
+          socket.readyState === WebSocket.OPEN ||
+          socket.readyState === WebSocket.CONNECTING
+        )
+      ) {
+        socket.close();
+      }
+
+      setConnectionStatus("Connecting to Deriv...");
+
+      showMessage("Establishing connection to Deriv...");
+
+      reconnectButton.disabled = true;
+
+      try {
+        socket = new WebSocket(DERIV_PUBLIC_URL);
+      } catch (error) {
+        console.error("WebSocket creation failed:", error);
+
+        setConnectionStatus("Connection failed", "disconnected");
+        reconnectButton.disabled = false;
+        scheduleReconnect();
+        return;
+      }
+
+      socket.onopen = function() {
+        console.log("TradeSphere connected to Deriv.");
+
+        reconnectAttempts = 0;
+
+        setConnectionStatus("Connected", "connected");
+
+        reconnectButton.disabled = false;
+
+        showMessage("Connected. Retrieving market instruments...");
+
+        socket.send(JSON.stringify({
+          active_symbols: "full"
+        }));
+      };
+
+      socket.onmessage = handleMessage;
+
+      socket.onerror = function(error) {
+        console.error("Deriv WebSocket error:", error);
+
+        setConnectionStatus("Connection error", "disconnected");
+
+        showMessage(
+          "A connection error occurred. The dashboard will attempt to reconnect.",
+          true
+        );
+      };
+
+      socket.onclose = function(event) {
+        console.warn(
+          "Deriv connection closed:",
+          event.code,
+          event.reason
+        );
+
+        setConnectionStatus("Disconnected", "disconnected");
+        reconnectButton.disabled = false;
+
+        if (!manuallyClosed) {
+          showMessage(
+            "Connection lost. Attempting to reconnect..."
+          );
+
+          scheduleReconnect();
+        }
+      };
+    }
+
+    // --------------------------------------------------
+    // 12. AUTOMATIC RECONNECTION
+    // --------------------------------------------------
+
+    function scheduleReconnect() {
+      if (manuallyClosed) return;
+
+      clearTimeout(reconnectTimer);
+
+      reconnectAttempts++;
+
+      const delay = Math.min(
+        30000,
+        2000 * Math.pow(2, reconnectAttempts - 1)
+      );
+
+      setConnectionStatus("Reconnecting...", "");
+
+      reconnectTimer = setTimeout(
+        connectToDeriv,
+        delay
+      );
+    }
+
+    // --------------------------------------------------
+    // 13. MANUAL RECONNECTION
+    // --------------------------------------------------
+
+    reconnectButton.addEventListener("click", function() {
+      manuallyClosed = true;
+
+      clearTimeout(reconnectTimer);
+
+      if (socket) {
+        socket.close();
+      }
+
+      reconnectAttempts = 0;
+
+      instruments.forEach(instrument => {
+        const state = marketState[instrument.name];
+
+        state.price = null;
+        state.previousPrice = null;
+        state.symbol = null;
+      });
+
+      renderMarketCards();
+
+      connectToDeriv();
+    });
+
+    // --------------------------------------------------
+    // 14. START DASHBOARD
+    // --------------------------------------------------
+
+    renderMarketCards();
+    connectToDeriv();
+
+    // --------------------------------------------------
+    // 15. CLEAN UP WHEN PAGE CLOSES
+    // --------------------------------------------------
+
+    window.addEventListener("beforeunload", function() {
+      manuallyClosed = true;
+
+      clearTimeout(reconnectTimer);
+
+      if (socket) {
+        socket.close();
+      }
+    });
+
+  </script>
+
+</body>
+</html>
+option>CRT</option>
               <option>Other</option>
             </select>
           </div>
