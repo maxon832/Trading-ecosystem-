@@ -273,7 +273,14 @@ function subscribeToMarkets(activeSymbols) {
     }
 
     state.symbol = actualSymbol;
-    state.error = null;
+state.error = null;
+
+if (Number.isFinite(Number(match.pip_size))) {
+  state.pipSize = Math.min(
+    10,
+    Math.max(0, Number(match.pip_size))
+  );
+}
 
     availableCount++;
 
