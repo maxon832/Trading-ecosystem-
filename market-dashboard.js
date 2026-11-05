@@ -132,10 +132,10 @@ function findMarketSymbol(activeSymbols, requestedName) {
   const target = normaliseName(requestedName);
 
   return activeSymbols.find(item => {
-    const displayName = normaliseName(item.display_name);
+    const displayName = normaliseName(
+      item.underlying_symbol_name || item.display_name
+    );
 
-    // Exact matching prevents confusing different
-    // indices, such as 75 and 75 (1s).
     return displayName === target;
   });
 }
@@ -231,14 +231,18 @@ function subscribeToMarkets(activeSymbols) {
 
     const state = marketState[market.name];
 
-    if (!match || !match.symbol) {
+    const actualSymbol = match
+      ? (match.underlying_symbol || match.symbol)
+      : null;
+
+    if (!match || !actualSymbol) {
       state.symbol = null;
-      state.error = "Not returned by active-symbols feed";
+      state.error = "Symbol not found in Deriv response";
       updateMarketCard(market.name);
       return;
     }
 
-    state.symbol = match.symbol;
+    state.symbol = actualSymbol;
     state.error = null;
 
     availableCount++;
@@ -246,23 +250,16 @@ function subscribeToMarkets(activeSymbols) {
     updateMarketCard(market.name);
 
     socket.send(JSON.stringify({
-      ticks: match.symbol,
+      ticks: actualSymbol,
       subscribe: 1,
       req_id: requestNumber++
     }));
   });
 
-  if (availableCount === 0) {
-    setConnectionStatus(
-      "connected",
-      "Connected, but no requested instruments were matched"
-    );
-  } else {
-    setConnectionStatus(
-      "connected",
-      `Connected — checking ${availableCount} instruments`
-    );
-  }
+  setConnectionStatus(
+    "connected",
+    `Connected — ${availableCount} of 12 instruments matched`
+  );
 }
 
 // ==============================================
