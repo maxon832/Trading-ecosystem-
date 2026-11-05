@@ -340,7 +340,12 @@ function handleMessage(event) {
 
   if (data.msg_type === "active_symbols") {
     const symbols = data.active_symbols || [];
+  console.log("Deriv active symbols:", symbols);
 
+  setConnectionStatus(
+    "connected",
+    `Deriv responded — received ${symbols.length} instruments`
+  );
     if (!Array.isArray(symbols)) {
       setConnectionStatus(
         "disconnected",
