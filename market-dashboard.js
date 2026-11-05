@@ -129,44 +129,30 @@ function normaliseName(value) {
 }
 
 
-function findMarketSymbol(activeSymbols, requestedName) {
-  const target = normaliseName(requestedName);
-
-  // First attempt: exact display-name match.
-  const exactMatch = activeSymbols.find(item => {
-    const displayName = normaliseName(
-      item.underlying_symbol_name
-    );
-
-    return displayName === target;
-  });
-
-  if (exactMatch) return exactMatch;
-
-  // Diagnostic only: identify possible alternatives.
-  const possibleMatches = activeSymbols.filter(item => {
-    const displayName = normaliseName(
-      item.underlying_symbol_name
-    );
-
-    return displayName.includes(target) ||
-           target.includes(displayName);
-  });
-
-  console.warn(
-    `[TradeSphere] No exact match for: ${requestedName}`,
-    {
-      possibleMatches: possibleMatches.map(item => ({
-        name: item.underlying_symbol_name,
-        symbol: item.underlying_symbol,
-        market: item.market,
-        subgroup: item.subgroup,
-        pip_size: item.pip_size
-      }))
-    }
+function findInstrument(activeSymbol) {
+  const displayName = normaliseName(
+    activeSymbol.underlying_symbol_name ||
+    activeSymbol.display_name ||
+    ""
   );
 
-  return null;
+  const symbol = String(
+    activeSymbol.underlying_symbol ||
+    activeSymbol.symbol ||
+    ""
+  ).toUpperCase();
+
+  return instruments.find(instrument => {
+    const requestedName = normaliseName(instrument.name);
+
+    if (displayName === requestedName) {
+      return true;
+    }
+
+    return instrument.aliases.some(alias =>
+      alias.toUpperCase() === symbol
+    );
+  });
 }
 
 
@@ -261,10 +247,12 @@ function subscribeToMarkets(activeSymbols) {
 
     const state = marketState[market.name];
 
-    const actualSymbol = match
-      ? (match.underlying_symbol || match.symbol)
-      : null;
+    const actualSymbol =
+  match.underlying_symbol || match.symbol;
 
+state.pipSize = Number(
+  match.pip_size || match.pip || 2
+);
     if (!match || !actualSymbol) {
       state.symbol = null;
       state.error = "Symbol not found in Deriv response";
