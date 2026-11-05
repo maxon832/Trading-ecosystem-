@@ -423,17 +423,18 @@ function connectToDeriv() {
 
   clearTimeout(reconnectTimer);
 
-  if (socket) {
-    socket.onclose = null;
-    socket.onerror = null;
-    socket.onmessage = null;
-
-    if (
-      socket.readyState === WebSocket.OPEN ||
-      socket.readyState === WebSocket.CONNECTING
-    ) {
-      socket.close();
-    }
+  if (
+  socket &&
+  (
+    socket.readyState === WebSocket.OPEN ||
+    socket.readyState === WebSocket.CONNECTING
+  )
+) {
+  socket.onopen = null;
+  socket.onmessage = null;
+  socket.onerror = null;
+  socket.onclose = null;
+  socket.close();
   }
 
   setConnectionStatus(
