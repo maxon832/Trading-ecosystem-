@@ -229,7 +229,28 @@
           Create analysis summary
         </button>
 
-        <div class="scenario-output" id="scenarioOutput" aria-live="polite"></div>
+        
+<div class="scenario-output" id="scenarioOutput" aria-live="polite"></div>
+
+<button class="analysis-button" id="saveScenario" disabled>
+  Save this analysis
+</button>
+
+<section class="saved-analysis-section">
+  <div class="saved-heading">
+    <div>
+      <span class="eyebrow">YOUR WORKSPACE</span>
+      <h3>Saved analyses</h3>
+      <p>Your previously saved market plans.</p>
+    </div>
+    <span id="savedCount" class="saved-count">0 saved</span>
+  </div>
+
+  <div id="savedAnalyses" class="saved-analysis-list">
+    <p class="empty-saved">You haven't saved any analyses yet.</p>
+  </div>
+</section>
+
       </div>
     </div>
   </section>
