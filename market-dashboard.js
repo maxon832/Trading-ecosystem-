@@ -128,17 +128,47 @@ function normaliseName(value) {
     .replace(/\s+/g, " ");
 }
 
+
 function findMarketSymbol(activeSymbols, requestedName) {
   const target = normaliseName(requestedName);
 
-  return activeSymbols.find(item => {
+  // First attempt: exact display-name match.
+  const exactMatch = activeSymbols.find(item => {
     const displayName = normaliseName(
-      item.underlying_symbol_name || item.display_name
+      item.underlying_symbol_name
     );
 
     return displayName === target;
   });
+
+  if (exactMatch) return exactMatch;
+
+  // Diagnostic only: identify possible alternatives.
+  const possibleMatches = activeSymbols.filter(item => {
+    const displayName = normaliseName(
+      item.underlying_symbol_name
+    );
+
+    return displayName.includes(target) ||
+           target.includes(displayName);
+  });
+
+  console.warn(
+    `[TradeSphere] No exact match for: ${requestedName}`,
+    {
+      possibleMatches: possibleMatches.map(item => ({
+        name: item.underlying_symbol_name,
+        symbol: item.underlying_symbol,
+        market: item.market,
+        subgroup: item.subgroup,
+        pip_size: item.pip_size
+      }))
+    }
+  );
+
+  return null;
 }
+
 
 // ==============================================
 // UPDATE A CARD
@@ -335,29 +365,47 @@ function handleMessage(event) {
     return;
   }
 
-  if (data.msg_type === "active_symbols") {
-    const symbols = data.active_symbols || [];
-  console.log("Deriv active symbols:", symbols);
+  
+if (data.msg_type === "active_symbols") {
+  const symbols = data.active_symbols;
 
-  setConnectionStatus(
-    "connected",
-    `Deriv responded — received ${symbols.length} instruments`
+  if (!Array.isArray(symbols)) {
+    console.error(
+      "[TradeSphere] Invalid active_symbols response:",
+      data
+    );
+
+    setConnectionStatus(
+      "disconnected",
+      "Invalid instrument list received"
+    );
+
+    return;
+  }
+
+  console.log(
+    "[TradeSphere] Total Deriv instruments:",
+    symbols.length
   );
-    if (!Array.isArray(symbols)) {
-      setConnectionStatus(
-        "disconnected",
-        "Unexpected symbol response from Deriv"
-      );
-      return;
-    }
 
-    subscribeToMarkets(symbols);
-  }
+  // Show all relevant synthetic instruments for diagnosis.
+  const syntheticMarkets = symbols.filter(item =>
+    item.market === "synthetic_index"
+  );
 
-  if (data.msg_type === "tick") {
-    handleTick(data.tick);
-  }
+  console.table(
+    syntheticMarkets.map(item => ({
+      name: item.underlying_symbol_name,
+      symbol: item.underlying_symbol,
+      market: item.market,
+      subgroup: item.subgroup,
+      pipSize: item.pip_size
+    }))
+  );
+
+  subscribeToMarkets(symbols);
 }
+
 
 // ==============================================
 // CONNECT TO DERIV
