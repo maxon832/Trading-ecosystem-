@@ -561,3 +561,224 @@ body {
     align-items: flex-start;
   }
 }
+
+/* ==================================
+   TRADESPHERE LIVE MARKET DASHBOARD
+================================== */
+
+.live-dashboard-section {
+  padding: 75px 0;
+  background: #111a14;
+  border-top: 1px solid var(--ma-border);
+  border-bottom: 1px solid var(--ma-border);
+}
+
+.live-dashboard-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.live-dashboard-heading h2 {
+  font-size: 32px;
+  margin: 12px 0;
+}
+
+.live-dashboard-heading p {
+  color: var(--ma-muted);
+  line-height: 1.7;
+}
+
+.live-refresh-button {
+  background: var(--ma-card);
+  color: var(--ma-green);
+  border: 1px solid var(--ma-border);
+  border-radius: 6px;
+  padding: 12px 17px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.live-refresh-button:hover {
+  border-color: var(--ma-green);
+}
+
+.live-status-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 19px;
+  background: var(--ma-card);
+  border: 1px solid var(--ma-border);
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 13px;
+}
+
+.live-status-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #e0a33b;
+  display: inline-block;
+}
+
+.status-dot.connected {
+  background: var(--ma-green);
+  box-shadow: 0 0 8px rgba(22,199,132,.6);
+}
+
+.status-dot.disconnected {
+  background: #e45c5c;
+}
+
+.live-status-right {
+  color: var(--ma-muted);
+}
+
+.live-status-right strong {
+  color: var(--ma-text);
+  margin-left: 5px;
+}
+
+.live-dashboard-note {
+  color: var(--ma-muted);
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 15px 0 25px;
+}
+
+.live-market-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.live-market-card {
+  min-width: 0;
+  padding: 22px;
+  background: var(--ma-card);
+  border: 1px solid var(--ma-border);
+  border-radius: 10px;
+  transition: border-color .2s;
+}
+
+.live-market-card:hover {
+  border-color: var(--ma-green);
+}
+
+.live-market-card h3 {
+  font-size: 16px;
+  margin: 0 0 10px;
+}
+
+.live-market-category {
+  color: var(--ma-green);
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.live-market-price {
+  font-size: clamp(22px, 3vw, 29px);
+  font-weight: 800;
+  margin: 17px 0 8px;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+.live-market-movement {
+  font-size: 12px;
+  color: var(--ma-muted);
+}
+
+.live-market-movement.up {
+  color: var(--ma-green);
+}
+
+.live-market-movement.down {
+  color: #ff7777;
+}
+
+.live-market-time {
+  color: #829187;
+  font-size: 11px;
+  margin-top: 17px;
+}
+
+.live-market-symbol {
+  color: #829187;
+  font-size: 10px;
+  margin-top: 7px;
+  overflow-wrap: anywhere;
+}
+
+.live-market-card.unavailable {
+  opacity: .75;
+}
+
+.live-market-card.unavailable .live-market-price {
+  color: var(--ma-muted);
+  font-size: 16px;
+}
+
+.live-market-card.error {
+  border-color: rgba(228,92,92,.5);
+}
+
+.live-loading {
+  color: var(--ma-muted);
+  padding: 20px 0;
+}
+
+.live-disclaimer {
+  margin-top: 25px;
+  padding: 17px;
+  border-left: 3px solid var(--ma-green);
+  background: rgba(22,199,132,.06);
+  color: var(--ma-muted);
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+@media (max-width: 850px) {
+  .live-market-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 650px) {
+  .live-dashboard-section {
+    padding: 55px 0;
+  }
+
+  .live-dashboard-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .live-dashboard-heading h2 {
+    font-size: 27px;
+  }
+
+  .live-market-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .live-status-panel {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  }
