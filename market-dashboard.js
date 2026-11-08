@@ -1,537 +1,1160 @@
 
-// ==============================================
-// TRADESPHERE - LIVE DERIV SYNTHETIC DASHBOARD
-// Public market data only. No trading permissions.
-// ==============================================
+/* =====================================================
+   TRADESPHERE - DERIV LIVE MARKET DASHBOARD
+   Version: 2.0
+   Public market data only
+===================================================== */
 
-const DERIV_PUBLIC_URL =
-  "wss://api.derivws.com/trading/v1/options/ws/public";
+(() => {
+  "use strict";
 
-const requestedMarkets = [
-  { name: "Volatility 75", category: "Volatility" },
-  { name: "Volatility 50", category: "Volatility" },
-  { name: "Boom 1000", category: "Boom & Crash" },
-  { name: "Crash 1000", category: "Boom & Crash" },
-  { name: "Crash 500", category: "Boom & Crash" },
-  { name: "Step Index", category: "Step" },
-  { name: "Boom 500", category: "Boom & Crash" },
-  { name: "Volatility 250", category: "Volatility" },
-  { name: "Volatility 150", category: "Volatility" },
-  { name: "Volatility 100", category: "Volatility" },
-  { name: "Volatility 25", category: "Volatility" },
-  { name: "Volatility 10", category: "Volatility" }
-];
+  /* ================================================
+     CONFIGURATION
+  ================================================ */
 
-const grid = document.getElementById("liveMarketGrid");
-const connectionStatus =
-  document.getElementById("liveConnectionStatus");
-const statusDot = document.getElementById("liveStatusDot");
-const lastUpdate = document.getElementById("liveLastUpdate");
-const reconnectButton =
-  document.getElementById("refreshLiveMarkets");
+  const CONFIG = {
+    websocketURL:
+      "wss://api.derivws.com/trading/v1/options/ws/public",
 
-let socket = null;
-let reconnectTimer = null;
-let reconnectAttempts = 0;
-let manuallyClosed = false;
-let requestNumber = 1;
-
-const marketState = {};
-
-requestedMarkets.forEach(market => {
-  marketState[market.name] = {
-    symbol: null,
-    price: null,
-    previousPrice: null,
-    pipSize: 2,
-    updatedAt: null,
-    error: null
+    reconnectDelay: 3000,
+    maximumReconnectDelay: 30000,
+    pingInterval: 30000
   };
-});
 
-// ==============================================
-// BUILD THE MARKET CARDS
-// ==============================================
 
-function renderMarketCards() {
-  grid.replaceChildren();
+  /* ================================================
+     REQUESTED INSTRUMENTS
 
-  requestedMarkets.forEach(market => {
-    const state = marketState[market.name];
+     Aliases are matched against Deriv's actual
+     active_symbols response.
+  ================================================ */
 
-    const card = document.createElement("article");
-    card.className = "live-market-card";
-    card.id = `market-${market.name.replace(/\s+/g, "-")}`;
+  const requestedMarkets = [
+    {
+      id: "vol75",
+      name: "Volatility 75",
+      aliases: ["R_75", "Volatility 75", "Volatility 75 Index"]
+    },
+    {
+      id: "vol50",
+      name: "Volatility 50",
+      aliases: ["R_50", "Volatility 50", "Volatility 50 Index"]
+    },
+    {
+      id: "boom1000",
+      name: "Boom 1000",
+      aliases: ["BOOM1000", "Boom 1000", "Boom 1000 Index"]
+    },
+    {
+      id: "crash1000",
+      name: "Crash 1000",
+      aliases: ["CRASH1000", "Crash 1000", "Crash 1000 Index"]
+    },
+    {
+      id: "crash500",
+      name: "Crash 500",
+      aliases: ["CRASH500", "Crash 500", "Crash 500 Index"]
+    },
+    {
+      id: "step",
+      name: "Step Index",
+      aliases: ["stpRNG", "Step Index", "Step"]
+    },
+    {
+      id: "boom500",
+      name: "Boom 500",
+      aliases: ["BOOM500", "Boom 500", "Boom 500 Index"]
+    },
+    {
+      id: "vol250",
+      name: "Volatility 250",
+      aliases: ["R_250", "Volatility 250", "Volatility 250 Index"]
+    },
+    {
+      id: "vol150",
+      name: "Volatility 150",
+      aliases: ["R_150", "Volatility 150", "Volatility 150 Index"]
+    },
+    {
+      id: "vol100",
+      name: "Volatility 100",
+      aliases: ["R_100", "Volatility 100", "Volatility 100 Index"]
+    },
+    {
+      id: "vol25",
+      name: "Volatility 25",
+      aliases: ["R_25", "Volatility 25", "Volatility 25 Index"]
+    },
+    {
+      id: "vol10",
+      name: "Volatility 10",
+      aliases: ["R_10", "Volatility 10", "Volatility 10 Index"]
+    }
+  ];
 
-    const category = document.createElement("span");
-    category.className = "live-market-category";
-    category.textContent = market.category;
 
-    const heading = document.createElement("h3");
-    heading.textContent = market.name;
+  /* ================================================
+     STATE
+  ================================================ */
 
-    const price = document.createElement("div");
-    price.className = "live-market-price";
-    price.textContent = "Waiting for tick...";
+  let socket = null;
 
-    const movement = document.createElement("div");
-    movement.className = "live-market-movement";
-    movement.textContent = "No price movement yet";
+  let reconnectTimer = null;
+  let pingTimer = null;
 
-    const time = document.createElement("div");
-    time.className = "live-market-time";
-    time.textContent = "Waiting for market data";
+  let reconnectAttempts = 0;
+  let connectionGeneration = 0;
+  let nextRequestId = 100;
 
-    const symbol = document.createElement("div");
-    symbol.className = "live-market-symbol";
-    symbol.textContent = "Checking availability...";
+  let isManuallyClosing = false;
+  let activeSymbolsLoaded = false;
 
-    card.append(
-      category,
-      heading,
-      price,
-      movement,
-      time,
-      symbol
-    );
+  const matchedMarkets = new Map();
+  const subscriptions = new Map();
+  const requestMarkets = new Map();
 
-    grid.appendChild(card);
-  });
-}
 
-// ==============================================
-// CONNECTION STATUS
-// ==============================================
+  /* ================================================
+     DOM ELEMENTS
+  ================================================ */
 
-function setConnectionStatus(status, message) {
-  connectionStatus.textContent = message;
+  const elements = {
+    grid: document.getElementById("liveMarketGrid"),
 
-  statusDot.className = "status-dot";
+    connection:
+      document.getElementById("liveConnectionStatus"),
 
-  if (status === "connected") {
-    statusDot.classList.add("connected");
-  } else if (status === "disconnected") {
-    statusDot.classList.add("disconnected");
+    dot:
+      document.getElementById("liveStatusDot"),
+
+    count:
+      document.getElementById("instrumentCount"),
+
+    lastUpdate:
+      document.getElementById("liveLastUpdate"),
+
+    message:
+      document.getElementById("dashboardMessage"),
+
+    reconnect:
+      document.getElementById("refreshLiveMarkets")
+  };
+
+
+  /* ================================================
+     BASIC UTILITIES
+  ================================================ */
+
+  function normalize(value) {
+    return String(value || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "");
   }
-}
-
-// ==============================================
-// SYMBOL NAME MATCHING
-// ==============================================
-
-function normaliseName(value) {
-  return String(value || "")
-    .toLowerCase()
-    .replace(/\bindex\b/g, "")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim()
-    .replace(/\s+/g, " ");
-}
 
 
-function findInstrument(activeSymbol) {
-  const displayName = normaliseName(
-    activeSymbol.underlying_symbol_name ||
-    activeSymbol.display_name ||
-    ""
-  );
-
-  const symbol = String(
-    activeSymbol.underlying_symbol ||
-    activeSymbol.symbol ||
-    ""
-  ).toUpperCase();
-
-  return instruments.find(instrument => {
-    const requestedName = normaliseName(instrument.name);
-
-    if (displayName === requestedName) {
-      return true;
+  function send(data) {
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      return false;
     }
 
-    return instrument.aliases.some(alias =>
-      alias.toUpperCase() === symbol
-    );
-  });
-}
-
-
-// ==============================================
-// UPDATE A CARD
-// ==============================================
-
-function updateMarketCard(name) {
-  const state = marketState[name];
-
-  const card = document.getElementById(
-    `market-${name.replace(/\s+/g, "-")}`
-  );
-
-  if (!card) return;
-
-  const priceElement =
-    card.querySelector(".live-market-price");
-
-  const movementElement =
-    card.querySelector(".live-market-movement");
-
-  const timeElement =
-    card.querySelector(".live-market-time");
-
-  const symbolElement =
-    card.querySelector(".live-market-symbol");
-
-  card.classList.remove("unavailable", "error");
-
-  if (state.error) {
-    card.classList.add("unavailable");
-
-    priceElement.textContent = "Unavailable";
-    movementElement.textContent = state.error;
-    timeElement.textContent = "No live price received";
-    symbolElement.textContent = "Check Deriv availability";
-    return;
+    socket.send(JSON.stringify(data));
+    return true;
   }
 
-  if (!state.symbol) {
-    priceElement.textContent = "Checking...";
-    movementElement.textContent = "Resolving instrument";
-    timeElement.textContent = "Waiting for symbol response";
-    return;
+
+  function setStatus(text, state = "connecting") {
+
+    if (elements.connection) {
+      elements.connection.textContent = text;
+    }
+
+    if (elements.dot) {
+      elements.dot.className = "status-dot " + state;
+    }
   }
 
-  symbolElement.textContent = `Deriv symbol: ${state.symbol}`;
 
-  if (state.price === null) {
-    priceElement.textContent = "Waiting for tick...";
-    movementElement.textContent = "Subscription requested";
-    timeElement.textContent = "Awaiting first price";
-    return;
+  function setMessage(text) {
+    if (elements.message) {
+      elements.message.textContent = text;
+    }
   }
 
-  priceElement.textContent =
-    Number(state.price).toFixed(state.pipSize);
 
-  movementElement.className = "live-market-movement";
+  function updateMatchedCount() {
 
-  if (state.previousPrice === null) {
-    movementElement.textContent = "Initial price received";
-  } else if (state.price > state.previousPrice) {
-    movementElement.classList.add("up");
-    movementElement.textContent = "↑ Price moved up";
-  } else if (state.price < state.previousPrice) {
-    movementElement.classList.add("down");
-    movementElement.textContent = "↓ Price moved down";
-  } else {
-    movementElement.textContent = "→ No price change";
+    if (elements.count) {
+      elements.count.textContent =
+        `${matchedMarkets.size}/${requestedMarkets.length}`;
+    }
   }
 
-  if (state.updatedAt) {
-    timeElement.textContent =
-      `Updated: ${new Date(state.updatedAt).toLocaleTimeString()}`;
+
+  function updateLastUpdate() {
+
+    if (elements.lastUpdate) {
+
+      elements.lastUpdate.textContent =
+        "Last update: " +
+        new Date().toLocaleTimeString();
+    }
   }
-}
 
-// ==============================================
-// SUBSCRIBE TO ALL AVAILABLE INDICES
-// ==============================================
 
-function subscribeToMarkets(activeSymbols) {
-  let availableCount = 0;
+  /* ================================================
+     DASHBOARD STYLES
 
-  requestedMarkets.forEach(market => {
-    const match = findMarketSymbol(
-      activeSymbols,
-      market.name
-    );
+     Keeps the market cards readable even if
+     older dashboard styles were inconsistent.
+  ================================================ */
 
-    const state = marketState[market.name];
+  function installDashboardStyles() {
 
-    const actualSymbol = match
-      ? (match.underlying_symbol || match.symbol)
-      : null;
-
-    if (!match || !actualSymbol) {
-      state.symbol = null;
-      state.error = "Symbol not found in Deriv response";
-      updateMarketCard(market.name);
+    if (document.getElementById("tradesphereLiveStyles")) {
       return;
     }
 
-    state.symbol = actualSymbol;
-    state.error = null;
+    const style = document.createElement("style");
 
-    availableCount++;
+    style.id = "tradesphereLiveStyles";
 
-    updateMarketCard(market.name);
+    style.textContent = `
+      #liveMarketGrid {
+        display: grid;
+        grid-template-columns:
+          repeat(auto-fit, minmax(170px, 1fr));
+        gap: 14px;
+        width: 100%;
+        margin: 22px 0;
+      }
 
-    socket.send(JSON.stringify({
-      ticks: actualSymbol,
-      subscribe: 1,
-      req_id: requestNumber++
-    }));
-  });
+      .ts-live-card {
+        min-width: 0;
+        min-height: 120px;
+        padding: 17px;
+        border-radius: 12px;
+        background: #10251c;
+        border: 1px solid #1d3b2d;
+        transition: border-color .2s ease;
+      }
 
-  setConnectionStatus(
-    "connected",
-    `Connected — ${availableCount} of 12 instruments matched`
-  );
-}
+      .ts-live-card:hover {
+        border-color: #20c78a;
+      }
 
-// ==============================================
-// HANDLE LIVE PRICE TICKS
-// ==============================================
+      .ts-live-name {
+        color: #e4eee8;
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 5px;
+      }
 
-function handleTick(tick) {
-  if (!tick || !tick.symbol) return;
+      .ts-live-category {
+        color: #829b8d;
+        font-size: 10px;
+        margin-bottom: 17px;
+      }
 
-  const market = requestedMarkets.find(item => {
-    return marketState[item.name].symbol === tick.symbol;
-  });
+      .ts-live-price {
+        color: #ffffff;
+        font-size: 21px;
+        font-weight: 700;
+        overflow-wrap: anywhere;
+      }
 
-  if (!market) return;
+      .ts-live-change {
+        font-size: 11px;
+        margin-top: 6px;
+        color: #91a99a;
+      }
 
-  const state = marketState[market.name];
-  const newPrice = Number(tick.quote);
+      .ts-live-change.up {
+        color: #20c78a;
+      }
 
-  if (!Number.isFinite(newPrice)) return;
+      .ts-live-change.down {
+        color: #ff7777;
+      }
 
-  state.previousPrice = state.price;
-  state.price = newPrice;
+      .ts-live-note {
+        color: #91a99a;
+        font-size: 10px;
+        margin-top: 7px;
+      }
 
-  if (Number.isInteger(Number(tick.pip_size))) {
-    state.pipSize = Math.min(
-      10,
-      Math.max(0, Number(tick.pip_size))
-    );
-  }
+      .ts-live-card.error {
+        border-color: #754c40;
+      }
 
-  state.updatedAt = tick.epoch
-    ? Number(tick.epoch) * 1000
-    : Date.now();
+      .ts-live-card.received {
+        border-color: #226c4a;
+      }
 
-  state.error = null;
+      .status-dot.connected {
+        background: #20c78a;
+        box-shadow: 0 0 8px #20c78a;
+      }
 
-  updateMarketCard(market.name);
+      .status-dot.connecting {
+        background: #e7b84c;
+      }
 
-  lastUpdate.textContent =
-    new Date(state.updatedAt).toLocaleTimeString();
-}
+      .status-dot.error {
+        background: #ff6868;
+      }
 
-// ==============================================
-// HANDLE API MESSAGES
-// ==============================================
-
-function handleMessage(event) {
-  let data;
-
-  try {
-    data = JSON.parse(event.data);
-  } catch (error) {
-    console.error("Invalid Deriv response:", error);
-    return;
-  }
-
-  if (data.error) {
-    console.error("Deriv API error:", data.error.message);
-
-    if (data.echo_req && data.echo_req.ticks) {
-      const failedSymbol = data.echo_req.ticks;
-
-      requestedMarkets.forEach(market => {
-        const state = marketState[market.name];
-
-        if (state.symbol === failedSymbol) {
-          state.error = data.error.message;
-          updateMarketCard(market.name);
+      @media(max-width: 600px) {
+        #liveMarketGrid {
+          grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+          gap: 9px;
         }
-      });
+
+        .ts-live-card {
+          padding: 12px;
+          min-height: 112px;
+        }
+
+        .ts-live-price {
+          font-size: 17px;
+        }
+      }
+    `;
+
+    document.head.appendChild(style);
+  }
+
+
+  /* ================================================
+     CREATE MARKET CARDS
+  ================================================ */
+
+  function createMarketCards() {
+
+    if (!elements.grid) {
+      console.error(
+        "TradeSphere: liveMarketGrid element not found."
+      );
+      return;
     }
 
-    return;
+    elements.grid.replaceChildren();
+
+    requestedMarkets.forEach(market => {
+
+      const card = document.createElement("article");
+
+      card.className = "ts-live-card";
+      card.id = `market-${market.id}`;
+
+      const name = document.createElement("div");
+      name.className = "ts-live-name";
+      name.textContent = market.name;
+
+      const category = document.createElement("div");
+      category.className = "ts-live-category";
+      category.textContent = "Deriv Synthetic Index";
+
+      const price = document.createElement("div");
+      price.className = "ts-live-price";
+      price.id = `price-${market.id}`;
+      price.textContent = "--";
+
+      const change = document.createElement("div");
+      change.className = "ts-live-change";
+      change.id = `change-${market.id}`;
+      change.textContent = "Waiting for price";
+
+      const note = document.createElement("div");
+      note.className = "ts-live-note";
+      note.id = `note-${market.id}`;
+      note.textContent = "Waiting for connection";
+
+      card.append(
+        name,
+        category,
+        price,
+        change,
+        note
+      );
+
+      elements.grid.appendChild(card);
+    });
   }
 
-  
-if (data.msg_type === "active_symbols") {
-  const symbols = data.active_symbols;
 
-  if (!Array.isArray(symbols)) {
+  /* ================================================
+     UPDATE CARD
+  ================================================ */
+
+  function updateCardNote(id, text, error = false) {
+
+    const note = document.getElementById(`note-${id}`);
+    const card = document.getElementById(`market-${id}`);
+
+    if (note) {
+      note.textContent = text;
+    }
+
+    if (card) {
+      card.classList.toggle("error", error);
+    }
+  }
+
+
+  function displayPrice(market, tick) {
+
+    const priceElement =
+      document.getElementById(`price-${market.id}`);
+
+    const changeElement =
+      document.getElementById(`change-${market.id}`);
+
+    const card =
+      document.getElementById(`market-${market.id}`);
+
+    if (!priceElement || !changeElement) {
+      return;
+    }
+
+    const quote = Number(tick.quote);
+
+    if (!Number.isFinite(quote)) {
+      return;
+    }
+
+    const previous = market.previousPrice;
+
+    const precision = Number.isInteger(Number(tick.pip_size))
+      ? Math.min(Math.max(Number(tick.pip_size), 0), 12)
+      : 8;
+
+    priceElement.textContent =
+      quote.toLocaleString("en-US", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: precision
+      });
+
+    if (previous !== null && previous !== undefined) {
+
+      const difference = quote - previous;
+
+      const direction =
+        difference > 0 ? "up" :
+        difference < 0 ? "down" : "";
+
+      const arrow =
+        difference > 0 ? "▲" :
+        difference < 0 ? "▼" : "—";
+
+      changeElement.className =
+        "ts-live-change " + direction;
+
+      changeElement.textContent =
+        `${arrow} ${difference >= 0 ? "+" : ""}` +
+        difference.toFixed(precision);
+
+    } else {
+
+      changeElement.className = "ts-live-change";
+      changeElement.textContent = "Live price received";
+    }
+
+    market.previousPrice = quote;
+    market.hasPrice = true;
+
+    if (card) {
+      card.classList.add("received");
+    }
+
+    updateCardNote(
+      market.id,
+      `Live • ${new Date().toLocaleTimeString()}`
+    );
+
+    updateLastUpdate();
+    updateLiveSummary();
+  }
+
+
+  /* ================================================
+     LIVE PRICE SUMMARY
+  ================================================ */
+
+  function updateLiveSummary() {
+
+    const received = requestedMarkets.filter(
+      market => market.hasPrice
+    ).length;
+
+    const matched = matchedMarkets.size;
+
+    if (elements.message) {
+
+      if (received === requestedMarkets.length) {
+
+        setMessage(
+          `All ${received} requested instruments are receiving live prices.`
+        );
+
+      } else if (received > 0) {
+
+        setMessage(
+          `${received}/${requestedMarkets.length} instruments receiving live prices. ` +
+          `${matched}/${requestedMarkets.length} instruments matched.`
+        );
+
+      } else if (matched > 0) {
+
+        setMessage(
+          `${matched}/${requestedMarkets.length} instruments matched. ` +
+          "Waiting for first live ticks."
+        );
+
+      }
+    }
+  }
+
+
+  /* ================================================
+     MATCH DERIV SYMBOLS
+  ================================================ */
+
+  function getSymbolData(item) {
+
+    return {
+      symbol: String(item.symbol || ""),
+      displayName: String(
+        item.display_name ||
+        item.underlying_symbol ||
+        item.symbol ||
+        ""
+      ),
+      marketName: String(
+        item.market_display_name || ""
+      ),
+      submarketName: String(
+        item.submarket_display_name || ""
+      )
+    };
+  }
+
+
+  function matchInstrument(market, symbols) {
+
+    const aliases = market.aliases.map(normalize);
+
+    const candidates = symbols.map(getSymbolData);
+
+    // Exact matching first. Avoid fuzzy matching
+    // unrelated instruments with similar names.
+
+    for (const candidate of candidates) {
+
+      const fields = [
+        normalize(candidate.symbol),
+        normalize(candidate.displayName),
+        normalize(candidate.marketName),
+        normalize(candidate.submarketName)
+      ];
+
+      const matched = aliases.some(alias =>
+        fields.includes(alias)
+      );
+
+      if (matched && candidate.symbol) {
+        return candidate.symbol;
+      }
+    }
+
+    return null;
+  }
+
+
+  /* ================================================
+     REQUEST TICK SUBSCRIPTIONS
+  ================================================ */
+
+  function subscribeToMarkets(symbols) {
+
+    requestedMarkets.forEach(market => {
+
+      const symbol = matchInstrument(market, symbols);
+
+      if (!symbol) {
+
+        updateCardNote(
+          market.id,
+          "Not found in Deriv active symbols",
+          true
+        );
+
+        return;
+      }
+
+      if (matchedMarkets.has(market.id)) {
+        return;
+      }
+
+      market.symbol = symbol;
+      market.previousPrice = null;
+      market.hasPrice = false;
+
+      matchedMarkets.set(market.id, market);
+
+      updateCardNote(
+        market.id,
+        `Matched: ${symbol} • Requesting live price`
+      );
+
+      const reqId = nextRequestId++;
+
+      requestMarkets.set(reqId, market);
+
+      const sent = send({
+        ticks: symbol,
+        subscribe: 1,
+        req_id: reqId
+      });
+
+      if (sent) {
+        subscriptions.set(symbol, market);
+      } else {
+        updateCardNote(
+          market.id,
+          "Subscription request failed",
+          true
+        );
+      }
+
+    });
+
+    updateMatchedCount();
+
+    const matched = matchedMarkets.size;
+
+    if (matched === 0) {
+
+      setStatus("Connected — no instruments matched", "error");
+
+      setMessage(
+        "Deriv connection is open, but none of the requested instruments matched. Check the active_symbols response."
+      );
+
+    } else {
+
+      setStatus("Connected — receiving market data", "connected");
+
+      setMessage(
+        `${matched}/12 instruments matched. Waiting for live prices.`
+      );
+    }
+  }
+
+
+  /* ================================================
+     HANDLE ACTIVE SYMBOL RESPONSE
+  ================================================ */
+
+  function handleActiveSymbols(data) {
+
+    const symbols = data.active_symbols;
+
+    if (!Array.isArray(symbols)) {
+
+      setMessage(
+        "Deriv responded, but its active symbols list was not recognised."
+      );
+
+      return;
+    }
+
+    activeSymbolsLoaded = true;
+
+    console.log(
+      "TradeSphere: Deriv active symbols received:",
+      symbols
+    );
+
+    subscribeToMarkets(symbols);
+  }
+
+
+  /* ================================================
+     HANDLE LIVE TICK
+  ================================================ */
+
+  function handleTick(data) {
+
+    const tick = data.tick;
+
+    if (!tick) {
+      return;
+    }
+
+    let market = subscriptions.get(tick.symbol);
+
+    if (!market && data.req_id) {
+      market = requestMarkets.get(data.req_id);
+    }
+
+    if (!market) {
+      return;
+    }
+
+    displayPrice(market, tick);
+  }
+
+
+  /* ================================================
+     HANDLE API ERRORS
+  ================================================ */
+
+  function handleAPIError(data) {
+
+    const errorMessage =
+      data.error?.message ||
+      "Unknown Deriv API error";
+
     console.error(
-      "[TradeSphere] Invalid active_symbols response:",
-      data
+      "TradeSphere Deriv API error:",
+      data.error
     );
 
-    setConnectionStatus(
-      "disconnected",
-      "Invalid instrument list received"
+    const market = requestMarkets.get(data.req_id);
+
+    if (market) {
+
+      updateCardNote(
+        market.id,
+        errorMessage,
+        true
+      );
+
+    } else {
+
+      setMessage(
+        "Deriv API error: " + errorMessage
+      );
+    }
+
+    if (!activeSymbolsLoaded) {
+      setStatus("Deriv API error", "error");
+    }
+  }
+
+
+  /* ================================================
+     HANDLE ALL WEBSOCKET MESSAGES
+  ================================================ */
+
+  function handleMessage(event) {
+
+    let data;
+
+    try {
+      data = JSON.parse(event.data);
+    } catch (error) {
+
+      console.error(
+        "TradeSphere: Invalid WebSocket response",
+        error
+      );
+
+      return;
+    }
+
+    if (data.error) {
+      handleAPIError(data);
+      return;
+    }
+
+    switch (data.msg_type) {
+
+      case "active_symbols":
+        handleActiveSymbols(data);
+        break;
+
+      case "tick":
+        handleTick(data);
+        break;
+
+      case "ping":
+        break;
+
+      default:
+        console.log(
+          "TradeSphere: Deriv response",
+          data
+        );
+    }
+  }
+
+
+  /* ================================================
+     CLEAN UP OLD CONNECTION
+  ================================================ */
+
+  function clearConnectionTimers() {
+
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+    }
+
+    if (pingTimer) {
+      clearInterval(pingTimer);
+      pingTimer = null;
+    }
+  }
+
+
+  function resetMarketState() {
+
+    matchedMarkets.clear();
+    subscriptions.clear();
+    requestMarkets.clear();
+
+    activeSymbolsLoaded = false;
+
+    requestedMarkets.forEach(market => {
+
+      market.symbol = null;
+      market.previousPrice = null;
+      market.hasPrice = false;
+
+      const price =
+        document.getElementById(`price-${market.id}`);
+
+      const change =
+        document.getElementById(`change-${market.id}`);
+
+      if (price) price.textContent = "--";
+
+      if (change) {
+        change.textContent = "Waiting for price";
+        change.className = "ts-live-change";
+      }
+
+      updateCardNote(
+        market.id,
+        "Waiting for connection"
+      );
+
+    });
+
+    updateMatchedCount();
+  }
+
+
+  /* ================================================
+     AUTOMATIC RECONNECTION
+  ================================================ */
+
+  function scheduleReconnect(generation) {
+
+    if (isManuallyClosing || generation !== connectionGeneration) {
+      return;
+    }
+
+    if (reconnectTimer) {
+      return;
+    }
+
+    reconnectAttempts++;
+
+    const delay = Math.min(
+      CONFIG.reconnectDelay *
+        Math.pow(2, reconnectAttempts - 1),
+      CONFIG.maximumReconnectDelay
     );
 
-    return;
+    setStatus("Connection lost — reconnecting", "error");
+
+    setMessage(
+      `Reconnecting in ${Math.round(delay / 1000)} seconds...`
+    );
+
+    reconnectTimer = setTimeout(() => {
+
+      reconnectTimer = null;
+
+      if (generation === connectionGeneration) {
+        connectToDeriv();
+      }
+
+    }, delay);
   }
 
-  console.log(
-    "[TradeSphere] Total Deriv instruments:",
-    symbols.length
-  );
 
-  // Show all relevant synthetic instruments for diagnosis.
-  const syntheticMarkets = symbols.filter(item =>
-    item.market === "synthetic_index"
-  );
+  /* ================================================
+     MAIN CONNECTION
+  ================================================ */
 
-  console.table(
-    syntheticMarkets.map(item => ({
-      name: item.underlying_symbol_name,
-      symbol: item.underlying_symbol,
-      market: item.market,
-      subgroup: item.subgroup,
-      pipSize: item.pip_size
-    }))
-  );
+  function connectToDeriv() {
 
-  subscribeToMarkets(symbols);
-}
+    isManuallyClosing = false;
+
+    clearConnectionTimers();
+
+    connectionGeneration++;
+
+    const generation = connectionGeneration;
+
+    if (socket) {
+
+      const oldSocket = socket;
+
+      socket = null;
+
+      oldSocket.onclose = null;
+      oldSocket.onerror = null;
+      oldSocket.onmessage = null;
+      oldSocket.onopen = null;
+
+      try {
+        oldSocket.close();
+      } catch (error) {
+        console.warn(error);
+      }
+    }
+
+    resetMarketState();
+
+    setStatus("Connecting to Deriv...", "connecting");
+
+    setMessage("Opening Deriv public market-data connection...");
+
+    if (!("WebSocket" in window)) {
+
+      setStatus("WebSocket not supported", "error");
+
+      setMessage(
+        "Your browser does not support WebSocket connections."
+      );
+
+      return;
+    }
+
+    let newSocket;
+
+    try {
+
+      newSocket = new WebSocket(CONFIG.websocketURL);
+
+      socket = newSocket;
+
+    } catch (error) {
+
+      console.error(
+        "TradeSphere connection error:",
+        error
+      );
+
+      setStatus("Connection failed", "error");
+
+      scheduleReconnect(generation);
+
+      return;
+    }
 
 
-// ==============================================
-// CONNECT TO DERIV
-// ==============================================
+  /* CONNECTION OPEN */
 
-function connectToDeriv() {
-  manuallyClosed = false;
+    newSocket.onopen = () => {
 
-  clearTimeout(reconnectTimer);
+      if (generation !== connectionGeneration) {
+        return;
+      }
 
-  if (
-  socket &&
-  (
-    socket.readyState === WebSocket.OPEN ||
-    socket.readyState === WebSocket.CONNECTING
-  )
-) {
-  socket.onopen = null;
-  socket.onmessage = null;
-  socket.onerror = null;
-  socket.onclose = null;
-  socket.close();
+      reconnectAttempts = 0;
+
+      setStatus("Connected — requesting instruments", "connected");
+
+      setMessage(
+        "Connected successfully. Requesting Deriv active symbols..."
+      );
+
+      const sent = send({
+        active_symbols: "full",
+        req_id: 1
+      });
+
+      if (!sent) {
+        setMessage(
+          "Connection opened, but active symbols request could not be sent."
+        );
+      }
+
+      // Keep the connection alive.
+
+      pingTimer = setInterval(() => {
+
+        if (
+          socket === newSocket &&
+          newSocket.readyState === WebSocket.OPEN
+        ) {
+          send({ ping: 1 });
+        }
+
+      }, CONFIG.pingInterval);
+
+    };
+    
+    /* INCOMING DATA */
+
+    newSocket.onmessage = event => {
+
+      if (generation !== connectionGeneration) {
+        return;
+      }
+
+      handleMessage(event);
+
+    };
+
+
+    /* CONNECTION ERROR */
+
+    newSocket.onerror = error => {
+
+      console.error(
+        "TradeSphere WebSocket error:",
+        error
+      );
+
+      if (generation === connectionGeneration) {
+
+        setStatus("Connection error", "error");
+
+        setMessage(
+          "A WebSocket error occurred. Waiting for reconnection..."
+        );
+      }
+
+    };
+
+  /* CONNECTION CLOSED */
+
+    newSocket.onclose = event => {
+
+      if (generation !== connectionGeneration) {
+        return;
+      }
+
+      clearConnectionTimers();
+
+      socket = null;
+
+      console.warn(
+        "TradeSphere WebSocket closed:",
+        event.code,
+        event.reason
+      );
+
+      if (isManuallyClosing) {
+        return;
+      }
+
+      scheduleReconnect(generation);
+
+    };
+
   }
 
-  setConnectionStatus(
-    "connecting",
-    "Connecting to Deriv..."
-  );
+ /* ================================================
+     MANUAL RECONNECT BUTTON
+  ================================================ */
 
-  requestedMarkets.forEach(market => {
-    marketState[market.name].symbol = null;
-    marketState[market.name].error = null;
-    updateMarketCard(market.name);
+  if (elements.reconnect) {
+
+    elements.reconnect.addEventListener(
+      "click",
+      () => {
+
+        reconnectAttempts = 0;
+
+        connectToDeriv();
+
+      }
+    );
+  }
+
+ /* ================================================
+     NETWORK RECOVERY
+  ================================================ */
+
+  window.addEventListener("online", () => {
+
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+
+      reconnectAttempts = 0;
+
+      connectToDeriv();
+    }
+
   });
 
-  lastUpdate.textContent = "Waiting for data";
 
-  try {
-    socket = new WebSocket(DERIV_PUBLIC_URL);
-  } catch (error) {
-    console.error("WebSocket creation failed:", error);
-    scheduleReconnect();
-    return;
-  }
+  window.addEventListener("offline", () => {
 
-  socket.onopen = () => {
-    reconnectAttempts = 0;
+    setStatus("Device offline", "error");
 
-    setConnectionStatus(
-      "connected",
-      "Connected — requesting available instruments"
+    setMessage(
+      "Your internet connection is unavailable."
     );
 
-    socket.send(JSON.stringify({
-      active_symbols: "brief",
-      req_id: requestNumber++
-    }));
-  };
+  });
 
-  socket.onmessage = handleMessage;
+ /* ================================================
+     INITIALISE DASHBOARD
+  ================================================ */
 
-  socket.onerror = error => {
-    console.error("Deriv WebSocket error:", error);
-    setConnectionStatus(
-      "disconnected",
-      "Connection error"
-    );
-  };
+  function initialise() {
 
-  socket.onclose = () => {
-    setConnectionStatus(
-      "disconnected",
-      "Connection lost"
-    );
+    installDashboardStyles();
 
-    if (!manuallyClosed) {
-      scheduleReconnect();
-    }
-  };
-}
+    createMarketCards();
 
-// ==============================================
-// AUTOMATIC RECONNECTION
-// ==============================================
+    updateMatchedCount();
 
-function scheduleReconnect() {
-  if (manuallyClosed || reconnectTimer) return;
+    setStatus("Starting dashboard...", "connecting");
 
-  reconnectAttempts++;
-
-  const delay = Math.min(
-    30000,
-    2000 * Math.pow(2, reconnectAttempts - 1)
-  );
-
-  setConnectionStatus(
-    "disconnected",
-    `Reconnecting in ${Math.round(delay / 1000)} seconds...`
-  );
-
-  reconnectTimer = setTimeout(() => {
-    reconnectTimer = null;
     connectToDeriv();
-  }, delay);
-}
 
-// ==============================================
-// MANUAL RECONNECT
-// ==============================================
-
-reconnectButton.addEventListener("click", () => {
-  manuallyClosed = true;
-  clearTimeout(reconnectTimer);
-  reconnectTimer = null;
-
-  reconnectAttempts = 0;
-
-  if (socket) {
-    socket.onclose = null;
-    socket.close();
   }
 
-  connectToDeriv();
-});
 
-// ==============================================
-// START DASHBOARD
-// ==============================================
+  initialise();
 
-renderMarketCards();
-connectToDeriv();
+ /* ================================================
+     CLEAN UP WHEN PAGE IS CLOSED
+  ================================================ */
 
-// Stop reconnect attempts when the page is leaving.
-window.addEventListener("beforeunload", () => {
-  manuallyClosed = true;
-  clearTimeout(reconnectTimer);
+  window.addEventListener("pagehide", () => {
 
-  if (socket) {
-    socket.onclose = null;
-    socket.close();
-  }
-});
-                         
+    isManuallyClosing = true;
+
+    connectionGeneration++;
+
+    clearConnectionTimers();
+
+    if (socket) {
+
+      const oldSocket = socket;
+
+      socket = null;
+
+      oldSocket.onclose = null;
+
+      try {
+        oldSocket.close();
+      } catch (error) {
+        console.warn(error);
+      }
+    }
+
+  });
+
+
+})();
