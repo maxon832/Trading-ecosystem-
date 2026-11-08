@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     menuButton.addEventListener("click", function () {
 
-      const isOpen = navigation.classList.toggle("active");
+      const isOpen = navigation.classList.toggle("open");
 
       menuButton.setAttribute(
         "aria-expanded",
@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       link.addEventListener("click", function () {
 
-        navigation.classList.remove("active");
+        navigation.classList.remove("open");
 
         menuButton.setAttribute("aria-expanded", "false");
         menuButton.setAttribute("aria-label", "Open navigation");
