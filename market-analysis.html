@@ -4,431 +4,805 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TradeSphere | Live Market Dashboard</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+  <meta name="description" content="TradeSphere Market Analysis — Deriv synthetic indices live prices, trading frameworks and market planning tools.">
 
-    body {
-      font-family: Arial, sans-serif;
-      background: #071510;
-      color: #e8f2ed;
-      min-height: 100vh;
-    }
+  <title>TradeSphere | Market Analysis</title>
 
-    header {
-      padding: 22px 5%;
-      background: #0c2018;
-      border-bottom: 1px solid #1c3b2c;
-    }
+  <!-- Market Analysis Stylesheet -->
+  <link rel="stylesheet" href="market-analysis.css">
 
-    .brand {
-      color: #54d69a;
-      font-size: 23px;
-      font-weight: 800;
-    }
-
-    .subtitle {
-      color: #9bb4a7;
-      margin-top: 6px;
-      font-size: 13px;
-    }
-
-    main {
-      width: 90%;
-      max-width: 1200px;
-      margin: 35px auto;
-    }
-
-    .heading {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 15px;
-      margin-bottom: 22px;
-    }
-
-    h1 {
-      font-size: 25px;
-      margin-bottom: 7px;
-    }
-
-    .description {
-      color: #9bb4a7;
-      font-size: 13px;
-    }
-
-    .connection {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      background: #10271d;
-      border: 1px solid #244735;
-      border-radius: 30px;
-      padding: 10px 15px;
-      font-size: 13px;
-    }
-
-    .status-dot {
-      width: 9px;
-      height: 9px;
-      background: #e6aa46;
-      border-radius: 50%;
-    }
-
-    .status-dot.connected {
-      background: #35d68b;
-      box-shadow: 0 0 9px #35d68b;
-    }
-
-    .status-dot.disconnected {
-      background: #e45b5b;
-    }
-
-    .toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 20px;
-      padding: 15px;
-      background: #0c2018;
-      border: 1px solid #1c3b2c;
-      border-radius: 12px;
-    }
-
-    .update-info {
-      color: #9bb4a7;
-      font-size: 12px;
-      line-height: 1.7;
-    }
-
-    button {
-      background: #25b879;
-      color: #06150e;
-      border: none;
-      border-radius: 7px;
-      padding: 10px 17px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #42d795;
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .market-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
-    }
-
-    .market-card {
-      background: #10241a;
-      border: 1px solid #214332;
-      border-radius: 12px;
-      padding: 19px;
-      min-width: 0;
-    }
-
-    .market-card h3 {
-      font-size: 15px;
-      font-weight: 600;
-      color: #dcebe2;
-    }
-
-    .market-category {
-      color: #789687;
-      font-size: 11px;
-      margin-top: 5px;
-    }
-
-    .price {
-      font-size: 25px;
-      font-weight: 700;
-      margin-top: 22px;
-      color: #f0f7f2;
-      overflow-wrap: anywhere;
-    }
-
-    .price.up {
-      color: #42d795;
-    }
-
-    .price.down {
-      color: #ff7777;
-    }
-
-    .card-status {
-      color: #8ca99a;
-      font-size: 11px;
-      margin-top: 10px;
-    }
-
-    .message {
-      background: #172a20;
-      border: 1px solid #38503f;
-      border-radius: 9px;
-      padding: 14px;
-      margin-bottom: 18px;
-      color: #c5d8cc;
-      font-size: 13px;
-      line-height: 1.6;
-      display: none;
-    }
-
-    .message.visible {
-      display: block;
-    }
-
-    .message.error {
-      border-color: #874747;
-      color: #ffb4b4;
-    }
-
-    .footer {
-      margin-top: 30px;
-      color: #718e7e;
-      font-size: 11px;
-      text-align: center;
-      line-height: 1.7;
-    }
-
-    @media (max-width: 850px) {
-      .market-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 520px) {
-      main {
-        width: 92%;
-        margin-top: 25px;
-      }
-
-      .market-grid {
-        grid-template-columns: 1fr;
-      }
-
-      h1 {
-        font-size: 21px;
-      }
-
-      .price {
-        font-size: 23px;
-      }
-    }
-  </style>
 </head>
 
 <body>
 
-  <header>
-    <div class="brand">TradeSphere</div>
-    <div class="subtitle">Synthetic Indices Trading Ecosystem</div>
+  <!-- =================================
+       HEADER AND NAVIGATION
+  ================================== -->
+
+  <header class="analysis-header">
+
+    <a href="index.html" class="analysis-logo">
+      Trade<span>Sphere</span>
+    </a>
+
+    <button
+      class="analysis-menu"
+      id="menuToggle"
+      type="button"
+      aria-label="Toggle navigation"
+      aria-expanded="false"
+      aria-controls="mainNav"
+    >
+      ☰
+    </button>
+
+    <nav class="analysis-nav" id="mainNav">
+      <a href="index.html">Home</a>
+      <a href="academy.html">Academy</a>
+      <a href="market-analysis.html" class="active">Market Analysis</a>
+      <a href="#live-dashboard">Live Markets</a>
+      <a href="#analysis-builder">Analysis Workspace</a>
+    </nav>
+
   </header>
+
 
   <main>
 
-    <section class="heading">
-      <div>
-        <h1>Market Analysis</h1>
-        <p class="description">
-          Live Deriv synthetic indices market prices
+    <!-- =================================
+         HERO SECTION
+    ================================== -->
+
+    <section class="analysis-hero">
+
+      <div class="analysis-container">
+
+        <span class="eyebrow">
+          TRADESPHERE MARKET INTELLIGENCE
+        </span>
+
+        <h1>
+          Understand the market.
+          <span>Trade with a plan.</span>
+        </h1>
+
+        <p>
+          Access live Deriv synthetic indices prices,
+          explore technical market structures and develop
+          independent trading analysis.
         </p>
+
+        <a href="#live-dashboard" class="analysis-button">
+          View Live Markets
+        </a>
+
       </div>
 
-      <div class="connection">
-        <span id="liveStatusDot" class="status-dot"></span>
-        <span id="liveConnectionStatus">Connecting to Deriv...</span>
-      </div>
     </section>
 
-    <section class="toolbar">
-      <div class="update-info">
-        <div id="instrumentCount">Matched instruments: 0/12</div>
-        <div id="liveLastUpdate">Last update: Waiting for data</div>
+
+    <!-- =================================
+         LIVE DERIV DASHBOARD
+    ================================== -->
+
+    <section
+      class="live-dashboard-section"
+      id="live-dashboard"
+    >
+
+      <div class="analysis-container">
+
+        <div class="live-dashboard-heading">
+
+          <div>
+            <span class="eyebrow">
+              DERIV MARKET DATA
+            </span>
+
+            <h2>Live Synthetic Indices</h2>
+
+            <p>
+              Monitor live market prices from Deriv's
+              public market-data feed.
+            </p>
+          </div>
+
+          <button
+            id="refreshLiveMarkets"
+            class="live-refresh-button"
+            type="button"
+          >
+            Reconnect
+          </button>
+
+        </div>
+
+
+        <!-- Connection status -->
+
+        <div class="live-status-panel">
+
+          <div class="live-status-left">
+
+            <span
+              id="liveStatusDot"
+              class="status-dot"
+            ></span>
+
+            <strong id="liveConnectionStatus">
+              Connecting to Deriv...
+            </strong>
+
+          </div>
+
+          <div class="live-status-right">
+            <span>Matched instruments:</span>
+
+            <strong id="instrumentCount">
+              0/12
+            </strong>
+          </div>
+
+        </div>
+
+
+        <!-- Last update -->
+
+        <p
+          class="live-dashboard-note"
+          id="liveLastUpdate"
+        >
+          Last update: Waiting for market data.
+        </p>
+
+
+        <!-- Dashboard messages -->
+
+        <div
+          id="dashboardMessage"
+          class="live-dashboard-note"
+          aria-live="polite"
+        >
+          Establishing connection to Deriv...
+        </div>
+
+
+        <!-- Instrument cards are generated by JavaScript -->
+
+        <div
+          id="liveMarketGrid"
+          class="live-market-grid"
+          aria-live="polite"
+        >
+        </div>
+
+
+        <p class="live-dashboard-note">
+          Prices are supplied by Deriv's public market-data
+          feed. TradeSphere does not execute trades or
+          guarantee trading results.
+        </p>
+
       </div>
 
-      <button id="refreshLiveMarkets" type="button">
-        Reconnect
-      </button>
     </section>
 
-    <div id="dashboardMessage" class="message visible">
-      Loading market instruments...
-    </div>
 
-    <section id="liveMarketGrid" class="market-grid"></section>
+    <!-- =================================
+         MARKET FRAMEWORKS
+    ================================== -->
 
-    <div class="footer">
-      Market prices are supplied by Deriv's public market-data feed.
-      <br>
-      TradeSphere does not execute trades or guarantee trading results.
-    </div>
+    <section class="analysis-section">
+
+      <div class="analysis-container">
+
+        <div class="section-heading">
+
+          <span class="eyebrow">
+            TECHNICAL ANALYSIS
+          </span>
+
+          <h2>Explore Market Frameworks</h2>
+
+          <p>
+            Use structured questions to investigate
+            different markets before making trading
+            decisions.
+          </p>
+
+        </div>
+
+
+        <div class="market-grid">
+
+          <article class="market-card">
+
+            <span class="market-tag">FOREX</span>
+
+            <h3>EUR/USD</h3>
+
+            <p>
+              Study directional bias, liquidity,
+              market structure and economic context.
+            </p>
+
+            <button
+              class="framework-button"
+              data-asset="EUR/USD"
+              type="button"
+            >
+              Explore framework →
+            </button>
+
+          </article>
+
+
+          <article class="market-card">
+
+            <span class="market-tag">FOREX</span>
+
+            <h3>GBP/USD</h3>
+
+            <p>
+              Examine price action, liquidity sweeps
+              and macroeconomic influences.
+            </p>
+
+            <button
+              class="framework-button"
+              data-asset="GBP/USD"
+              type="button"
+            >
+              Explore framework →
+            </button>
+
+          </article>
+
+
+          <article class="market-card">
+
+            <span class="market-tag">FOREX</span>
+
+            <h3>USD/JPY</h3>
+
+            <p>
+              Investigate higher-timeframe structure
+              and important price levels.
+            </p>
+
+            <button
+              class="framework-button"
+              data-asset="USD/JPY"
+              type="button"
+            >
+              Explore framework →
+            </button>
+
+          </article>
+
+
+          <article class="market-card">
+
+            <span class="market-tag">METALS</span>
+
+            <h3>XAU/USD</h3>
+
+            <p>
+              Study gold through liquidity,
+              displacement, order blocks and FVGs.
+            </p>
+
+            <button
+              class="framework-button"
+              data-asset="XAU/USD"
+              type="button"
+            >
+              Explore framework →
+            </button>
+
+          </article>
+
+
+          <article class="market-card">
+
+            <span class="market-tag">METALS</span>
+
+            <h3>XAG/USD</h3>
+
+            <p>
+              Investigate silver price behaviour,
+              volatility and market correlations.
+            </p>
+
+            <button
+              class="framework-button"
+              data-asset="XAG/USD"
+              type="button"
+            >
+              Explore framework →
+            </button>
+
+          </article>
+
+
+          <article class="market-card">
+
+            <span class="market-tag">DERIV SYNTHETICS</span>
+
+            <h3>Volatility Indices</h3>
+
+            <p>
+              Analyse synthetic volatility indices
+              using market structure and price action.
+            </p>
+
+            <button
+              class="framework-button"
+              data-asset="Volatility Indices"
+              type="button"
+            >
+              Explore framework →
+            </button>
+
+          </article>
+
+
+          <article class="market-card">
+
+            <span class="market-tag">DERIV SYNTHETICS</span>
+
+            <h3>Boom & Crash</h3>
+
+            <p>
+              Study directional movement, liquidity
+              and spike-related market behaviour.
+            </p>
+
+            <button
+              class="framework-button"
+              data-asset="Boom & Crash"
+              type="button"
+            >
+              Explore framework →
+            </button>
+
+          </article>
+
+
+          <article class="market-card">
+
+            <span class="market-tag">DERIV SYNTHETICS</span>
+
+            <h3>Step Indices</h3>
+
+            <p>
+              Investigate market structure,
+              consolidation and directional movement.
+            </p>
+
+            <button
+              class="framework-button"
+              data-asset="Step Indices"
+              type="button"
+            >
+              Explore framework →
+            </button>
+
+          </article>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =================================
+         ANALYSIS PROCESS
+    ================================== -->
+
+    <section class="analysis-section analysis-alt">
+
+      <div class="analysis-container">
+
+        <div class="section-heading">
+
+          <span class="eyebrow">
+            TRADING DISCIPLINE
+          </span>
+
+          <h2>Our Analysis Process</h2>
+
+          <p>
+            Build a trading thesis from higher-timeframe
+            context towards lower-timeframe execution.
+          </p>
+
+        </div>
+
+
+        <div class="process-grid">
+
+          <article class="process-card">
+            <span>01</span>
+
+            <h3>Daily Bias</h3>
+
+            <p>
+              Establish the broader directional context
+              and identify significant liquidity levels.
+            </p>
+          </article>
+
+
+          <article class="process-card">
+            <span>02</span>
+
+            <h3>4H Structure</h3>
+
+            <p>
+              Identify major swings, order blocks,
+              fair value gaps and structural changes.
+            </p>
+          </article>
+
+
+          <article class="process-card">
+            <span>03</span>
+
+            <h3>1H Confirmation</h3>
+
+            <p>
+              Investigate liquidity sweeps, displacement,
+              BOS and CHoCH.
+            </p>
+          </article>
+
+
+          <article class="process-card">
+            <span>04</span>
+
+            <h3>15M / 30M Execution</h3>
+
+            <p>
+              Evaluate entry conditions, risk,
+              invalidation and realistic targets.
+            </p>
+          </article>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =================================
+         ANALYSIS WORKSPACE
+    ================================== -->
+
+    <section
+      class="analysis-section"
+      id="analysis-builder"
+    >
+
+      <div class="analysis-container">
+
+        <div class="section-heading">
+
+          <span class="eyebrow">
+            PERSONAL TRADING WORKSPACE
+          </span>
+
+          <h2>Create Your Market Analysis</h2>
+
+          <p>
+            Record your market observations,
+            trading bias and potential setup.
+          </p>
+
+        </div>
+
+
+        <div class="scenario-panel">
+
+          <div class="scenario-warning">
+
+            Educational tool only. Your analysis is
+            manually entered and is not a verified
+            trading signal or financial recommendation.
+
+          </div>
+
+
+          <!-- Analysis input fields -->
+
+          <div class="scenario-grid">
+
+            <div>
+
+              <label for="scenarioAsset">
+                Instrument
+              </label>
+
+              <input
+                type="text"
+                id="scenarioAsset"
+                placeholder="e.g. Volatility 75, XAUUSD"
+                required
+              >
+
+            </div>
+
+
+            <div>
+
+              <label for="scenarioTimeframe">
+                Timeframe
+              </label>
+
+              <select id="scenarioTimeframe" required>
+
+                <option value="">Select timeframe</option>
+                <option>Daily</option>
+                <option>4H</option>
+                <option>1H</option>
+                <option>30M</option>
+                <option>15M</option>
+                <option>5M</option>
+
+              </select>
+
+            </div>
+
+
+            <div>
+
+              <label for="scenarioBias">
+                Market Bias
+              </label>
+
+              <select id="scenarioBias" required>
+
+                <option value="">Select market bias</option>
+                <option>Bullish</option>
+                <option>Bearish</option>
+                <option>Neutral</option>
+
+              </select>
+
+            </div>
+
+
+            <div>
+
+              <label for="scenarioSetup">
+                Potential Setup
+              </label>
+
+              <select id="scenarioSetup" required>
+
+                <option value="">Select setup</option>
+                <option>Market Structure</option>
+                <option>Break of Structure (BOS)</option>
+                <option>Change of Character (CHoCH)</option>
+                <option>Liquidity Sweep</option>
+                <option>Order Block</option>
+                <option>Fair Value Gap (FVG)</option>
+                <option>Smart Money Concepts (SMC)</option>
+                <option>CRT</option>
+                <option>Other</option>
+
+              </select>
+
+            </div>
+
+          </div>
+
+
+          <label for="scenarioNotes">
+            Your analysis and invalidation conditions
+          </label>
+
+          <textarea
+            id="scenarioNotes"
+            rows="6"
+            placeholder="What is the market doing? Where is liquidity? What confirms your idea? What would invalidate it?"
+            required
+          ></textarea>
+
+
+          <button
+            class="analysis-button"
+            id="generateScenario"
+            type="button"
+          >
+            Create Analysis Summary
+          </button>
+
+
+          <!-- Generated analysis -->
+
+          <div
+            class="scenario-output"
+            id="scenarioOutput"
+            aria-live="polite"
+          ></div>
+
+
+          <button
+            class="analysis-button"
+            id="saveScenario"
+            type="button"
+            disabled
+          >
+            Save This Analysis
+          </button>
+
+
+          <!-- Saved analysis workspace -->
+
+          <section class="saved-analysis-section">
+
+            <div class="saved-heading">
+
+              <div>
+
+                <span class="eyebrow">
+                  YOUR WORKSPACE
+                </span>
+
+                <h3>Saved Analyses</h3>
+
+                <p>
+                  Your previously saved market plans.
+                </p>
+
+              </div>
+
+              <span
+                id="savedCount"
+                class="saved-count"
+              >
+                0 saved
+              </span>
+
+            </div>
+
+
+            <div
+              id="savedAnalyses"
+              class="saved-analysis-list"
+            >
+
+              <p class="empty-saved">
+                You haven't saved any analyses yet.
+              </p>
+
+            </div>
+
+          </section>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =================================
+         ACADEMY CALL TO ACTION
+    ================================== -->
+
+    <section class="analysis-cta">
+
+      <div class="analysis-container">
+
+        <h2>
+          Learn to analyse the market independently.
+        </h2>
+
+        <p>
+          Build your foundation before risking capital.
+        </p>
+
+        <a
+          href="academy.html"
+          class="analysis-button"
+        >
+          Explore the Academy
+        </a>
+
+      </div>
+
+    </section>
 
   </main>
 
-  <script>
-    "use strict";
 
-    // --------------------------------------------------
-    // 1. DERIV CONNECTION
-    // --------------------------------------------------
+  <!-- =================================
+       FOOTER
+  ================================== -->
 
-    const DERIV_PUBLIC_URL =
-      "wss://api.derivws.com/trading/v1/options/ws/public";
+  <footer class="analysis-footer">
 
-    // --------------------------------------------------
-    // 2. INSTRUMENTS REQUIRED
-    // --------------------------------------------------
+    <p>
+      © <span id="currentYear"></span>
+      TradeSphere. All rights reserved.
+    </p>
 
-    const instruments = [
-      { name: "Volatility 75", aliases: ["R_75"] },
-      { name: "Volatility 50", aliases: ["R_50"] },
-      { name: "Boom 1000", aliases: ["BOOM1000"] },
-      { name: "Crash 1000", aliases: ["CRASH1000"] },
-      { name: "Crash 500", aliases: ["CRASH500"] },
-      { name: "Step Index", aliases: ["STP"] },
-      { name: "Boom 500", aliases: ["BOOM500"] },
-      { name: "Volatility 250", aliases: ["R_250"] },
-      { name: "Volatility 150", aliases: ["R_150"] },
-      { name: "Volatility 100", aliases: ["R_100"] },
-      { name: "Volatility 25", aliases: ["R_25"] },
-      { name: "Volatility 10", aliases: ["R_10"] }
-    ];
+    <p>
+      Market analysis is educational and does not
+      guarantee trading results.
+    </p>
 
-    // --------------------------------------------------
-    // 3. HTML ELEMENTS
-    // --------------------------------------------------
+  </footer>
 
-    const grid = document.getElementById("liveMarketGrid");
-    const connectionStatus =
-      document.getElementById("liveConnectionStatus");
-    const statusDot = document.getElementById("liveStatusDot");
-    const lastUpdate = document.getElementById("liveLastUpdate");
-    const instrumentCount =
-      document.getElementById("instrumentCount");
-    const messageBox = document.getElementById("dashboardMessage");
-    const reconnectButton =
-      document.getElementById("refreshLiveMarkets");
 
-    // --------------------------------------------------
-    // 4. CONNECTION STATE
-    // --------------------------------------------------
+  <!-- =================================
+       ANALYSIS FRAMEWORK MODAL
+  ================================== -->
 
-    let socket = null;
-    let reconnectTimer = null;
-    let reconnectAttempts = 0;
-    let manuallyClosed = false;
-    let matchedCount = 0;
+  <div
+    class="framework-modal"
+    id="frameworkModal"
+    aria-hidden="true"
+  >
 
-    const marketState = {};
+    <div
+      class="framework-content"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="frameworkTitle"
+    >
 
-    instruments.forEach((instrument, index) => {
-      marketState[instrument.name] = {
-        symbol: null,
-        price: null,
-        previousPrice: null,
-        pipSize: 2,
-        updatedAt: null,
-        cardId: "market-card-" + index
-      };
-    });
+      <button
+        class="modal-close"
+        id="closeModal"
+        type="button"
+        aria-label="Close"
+      >
+        ×
+      </button>
 
-    // --------------------------------------------------
-    // 5. CREATE MARKET CARDS
-    // --------------------------------------------------
+      <span class="eyebrow">
+        ANALYSIS FRAMEWORK
+      </span>
 
-    function renderMarketCards() {
-      grid.replaceChildren();
+      <h2 id="frameworkTitle">
+        Instrument
+      </h2>
 
-      instruments.forEach((instrument, index) => {
-        const card = document.createElement("article");
-        card.className = "market-card";
-        card.id = marketState[instrument.name].cardId;
+      <p id="frameworkDescription"></p>
 
-        const title = document.createElement("h3");
-        title.textContent = instrument.name;
+      <h3>Questions to investigate</h3>
 
-        const category = document.createElement("div");
-        category.className = "market-category";
-        category.textContent = "Deriv Synthetic Index";
+      <ul id="frameworkList"></ul>
 
-        const price = document.createElement("div");
-        price.className = "price";
-        price.id = "price-" + index;
-        price.textContent = "--";
+      <p class="modal-note">
+        This is an educational checklist, not a
+        current market assessment or trade recommendation.
+      </p>
 
-        const status = document.createElement("div");
-        status.className = "card-status";
-        status.id = "status-" + index;
-        status.textContent = "Waiting for price...";
+    </div>
 
-        card.append(title, category, price, status);
-        grid.appendChild(card);
-      });
-    }
+  </div>
 
-    // --------------------------------------------------
-    // 6. CONNECTION STATUS
-    // --------------------------------------------------
 
-    function setConnectionStatus(status, type = "") {
-      connectionStatus.textContent = status;
-      statusDot.className = "status-dot " + type;
-    }
+  <!-- =================================
+       JAVASCRIPT FILES
+  ================================== -->
 
-    function showMessage(message, error = false) {
-      messageBox.textContent = message;
-      messageBox.className = error
-        ? "message visible error"
-        : "message visible";
-    }
+  <!-- Deriv Live Dashboard -->
+  <script src="market-dashboard.js" defer></script>
 
-    function hideMessage() {
-      messageBox.className = "message";
-    }
+  <!-- Analysis Workspace -->
+  <script src="market-analysis.js" defer></script>
 
-    // --------------------------------------------------
-    // 7. NORMALISE NAMES FOR MATCHING
-    // --------------------------------------------------
-
-    function normaliseName(value) {
-      return String(value || "")
-        .toLowerCase()
-        .replace(/\bindex\b/g, "")
-        .replace(/[^a-z0-9]/g, "");
-    }
-
-    function findInstrument(activeSymbol) {
-      const displayName = normaliseName(
-        activeSymbol.display_name
-      );
-
-      const symbol = String(
-        activeSymbol.symbol || ""
-      ).toUpperCase();
-
-      return instruments.find(instrument => {
-        const requestedName = normaliseName(instrument.name);
-
-        if (displayName === requestedName) {
-          return true;
-        }
-
-        return instrument.aliases.some(alias =>
+</body>
+</html>
+lias =>
           alias.toUpperCase() === symbol
         );
       });
