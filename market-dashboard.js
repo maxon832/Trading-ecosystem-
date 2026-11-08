@@ -31,65 +31,41 @@
 
   const requestedMarkets = [
     {
-      id: "vol75",
-      name: "Volatility 75",
-      aliases: ["R_75", "Volatility 75", "Volatility 75 Index"]
-    },
-    {
-      id: "vol50",
-      name: "Volatility 50",
-      aliases: ["R_50", "Volatility 50", "Volatility 50 Index"]
-    },
-    {
-      id: "boom1000",
-      name: "Boom 1000",
-      aliases: ["BOOM1000", "Boom 1000", "Boom 1000 Index"]
-    },
-    {
-      id: "crash1000",
-      name: "Crash 1000",
-      aliases: ["CRASH1000", "Crash 1000", "Crash 1000 Index"]
-    },
-    {
-      id: "crash500",
-      name: "Crash 500",
-      aliases: ["CRASH500", "Crash 500", "Crash 500 Index"]
-    },
-    {
-      id: "step",
-      name: "Step Index",
-      aliases: ["stpRNG", "Step Index", "Step"]
-    },
-    {
-      id: "boom500",
-      name: "Boom 500",
-      aliases: ["BOOM500", "Boom 500", "Boom 500 Index"]
-    },
-    {
-      id: "vol250",
-      name: "Volatility 250",
-      aliases: ["R_250", "Volatility 250", "Volatility 250 Index"]
-    },
-    {
-      id: "vol150",
-      name: "Volatility 150",
-      aliases: ["R_150", "Volatility 150", "Volatility 150 Index"]
-    },
-    {
-      id: "vol100",
-      name: "Volatility 100",
-      aliases: ["R_100", "Volatility 100", "Volatility 100 Index"]
-    },
-    {
-      id: "vol25",
-      name: "Volatility 25",
-      aliases: ["R_25", "Volatility 25", "Volatility 25 Index"]
-    },
-    {
-      id: "vol10",
-      name: "Volatility 10",
-      aliases: ["R_10", "Volatility 10", "Volatility 10 Index"]
-    }
+   {
+  id: "vol75",
+  name: "Volatility 75",
+  aliases: ["R_75", "1HZ75V", "Volatility 75"]
+},
+{
+  id: "vol50",
+  name: "Volatility 50",
+  aliases: ["R_50", "1HZ50V", "Volatility 50"]
+},
+{
+  id: "vol250",
+  name: "Volatility 250",
+  aliases: ["R_250", "1HZ250V", "Volatility 250"]
+},
+{
+  id: "vol150",
+  name: "Volatility 150",
+  aliases: ["R_150", "1HZ150V", "Volatility 150"]
+},
+{
+  id: "vol100",
+  name: "Volatility 100",
+  aliases: ["R_100", "1HZ100V", "Volatility 100"]
+},
+{
+  id: "vol25",
+  name: "Volatility 25",
+  aliases: ["R_25", "1HZ25V", "Volatility 25"]
+},
+{
+  id: "vol10",
+  name: "Volatility 10",
+  aliases: ["R_10", "1HZ10V", "Volatility 10"]
+},
   ];
 
 
@@ -542,33 +518,50 @@
 
   function matchInstrument(market, symbols) {
 
-    const aliases = market.aliases.map(normalize);
+  const aliases = market.aliases.map(normalize);
 
-    const candidates = symbols.map(getSymbolData);
+  for (const item of symbols) {
 
-    // Exact matching first. Avoid fuzzy matching
-    // unrelated instruments with similar names.
+    const candidate = getSymbolData(item);
 
-    for (const candidate of candidates) {
+    const fields = [
+      candidate.symbol,
+      candidate.displayName,
+      candidate.marketName,
+      candidate.submarketName,
+      item.underlying_symbol
+    ].map(normalize).filter(Boolean);
 
-      const fields = [
-        normalize(candidate.symbol),
-        normalize(candidate.displayName),
-        normalize(candidate.marketName),
-        normalize(candidate.submarketName)
-      ];
+    const matched = aliases.some(alias => {
 
-      const matched = aliases.some(alias =>
-        fields.includes(alias)
+      return fields.some(field => {
+
+        return field === alias ||
+          (alias.length >= 6 && field.includes(alias));
+
+      });
+
+    });
+
+    if (matched && candidate.symbol) {
+      console.log(
+        `Matched ${market.name}:`,
+        candidate.symbol,
+        candidate.displayName
       );
 
-      if (matched && candidate.symbol) {
-        return candidate.symbol;
-      }
+      return candidate.symbol;
     }
 
-    return null;
   }
+
+  console.warn(
+    `No match found for ${market.name}`,
+    market.aliases
+  );
+
+  return null;
+}
 
 
   /* ================================================
@@ -658,25 +651,53 @@
 
   function handleActiveSymbols(data) {
 
-    const symbols = data.active_symbols;
+  const symbols = data.active_symbols;
 
-    if (!Array.isArray(symbols)) {
+  if (!Array.isArray(symbols)) {
 
-      setMessage(
-        "Deriv responded, but its active symbols list was not recognised."
-      );
-
-      return;
-    }
-
-    activeSymbolsLoaded = true;
-
-    console.log(
-      "TradeSphere: Deriv active symbols received:",
-      symbols
+    console.error(
+      "Unexpected Deriv active_symbols response:",
+      data
     );
 
-    subscribeToMarkets(symbols);
+    setMessage(
+      "Deriv returned an unexpected instrument-list format."
+    );
+
+    return;
+  }
+
+  activeSymbolsLoaded = true;
+
+  console.log(
+    "========== DERIV INSTRUMENT DISCOVERY =========="
+  );
+
+  console.log("Total instruments:", symbols.length);
+
+  console.table(
+    symbols.map(item => ({
+      symbol: item.symbol,
+      display_name: item.display_name,
+      underlying_symbol: item.underlying_symbol,
+      market: item.market_display_name,
+      submarket: item.submarket_display_name
+    }))
+  );
+
+  console.log(
+    "========== END INSTRUMENT DISCOVERY =========="
+  );
+
+  subscribeToMarkets(symbols);
+
+  if (matchedMarkets.size === 0) {
+
+    setMessage(
+      `Received ${symbols.length} instruments from Deriv, ` +
+      "but none matched. Check the browser console for actual symbols."
+    );
+
   }
 
 
