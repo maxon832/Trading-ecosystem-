@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Share feedback about TradeSphere products, resources and mentorship.">
+  <title>TradeSphere | Reviews</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="commerce.css">
+</head>
+<body>
+<header class="ts-header">
+  <a class="ts-logo" href="index.html">Trade<span>Sphere.</span></a>
+  <button class="ts-menu" id="tsMenu" type="button" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+  <nav class="ts-nav" id="tsNav">
+    <a href="index.html">Home</a>
+    <a href="market-analysis.html">Free Trading Lab</a>
+    <a href="academy.html">Academy</a>
+    <a href="store.html">Store</a>
+    <a href="mentorship.html">Mentorship</a>
+    <a href="premium.html">Premium Education</a>
+    <a href="reviews.html">Reviews</a>
+  </nav>
+</header>
+<main>
+  <section class="ts-hero"><div class="ts-wrap">
+    <span class="ts-kicker">CUSTOMER FEEDBACK</span>
+    <h1>Real experiences. <span>Honest feedback.</span></h1>
+    <p>Reviews help new customers understand what TradeSphere offers. We publish feedback only after checking it and receiving permission from the person who submitted it.</p>
+  </div></section>
+  <section class="ts-section"><div class="ts-wrap">
+    <span class="ts-kicker">PUBLISHED REVIEWS</span>
+    <h2>What customers say</h2>
+    <div class="ts-empty">
+      <strong>No customer reviews have been published yet.</strong>
+      <p>TradeSphere is building its first customer feedback record. We will add reviews here as real customers submit feedback and approve publication.</p>
+    </div>
+  </div></section>
+  <section class="ts-section alt"><div class="ts-wrap">
+    <span class="ts-kicker">SUBMIT FEEDBACK</span>
+    <h2>Share your experience</h2>
+    <p class="ts-intro">Complete the form below. It will prepare a WhatsApp message for manual review. Your review will not appear publicly just because you submit it.</p>
+    <form class="ts-form" id="reviewForm">
+      <div class="ts-form-grid">
+        <div class="ts-field">
+          <label for="reviewerName">Name or display name</label>
+          <input id="reviewerName" name="reviewerName" maxlength="60" required placeholder="Your name">
+        </div>
+        <div class="ts-field">
+          <label for="reviewedItem">What are you reviewing?</label>
+          <select id="reviewedItem" name="reviewedItem" required>
+            <option value="">Choose one</option>
+            <option>Trading journal or template</option>
+            <option>Strategy playbook</option>
+            <option>Paid mentorship</option>
+            <option>Free Trading Lab</option>
+            <option>Trading Academy</option>
+            <option>Other TradeSphere resource</option>
+          </select>
+        </div>
+        <div class="ts-field">
+          <label for="rating">Rating</label>
+          <select id="rating" name="rating" required>
+            <option value="">Choose rating</option>
+            <option value="5">5 — Excellent</option>
+            <option value="4">4 — Good</option>
+            <option value="3">3 — Average</option>
+            <option value="2">2 — Poor</option>
+            <option value="1">1 — Very poor</option>
+          </select>
+        </div>
+        <div class="ts-field">
+          <label for="permission">May we publish your feedback?</label>
+          <select id="permission" name="permission" required>
+            <option value="">Choose one</option>
+            <option value="yes">Yes, using my chosen display name</option>
+            <option value="no">No, feedback for private use only</option>
+          </select>
+        </div>
+        <div class="ts-field full">
+          <label for="reviewText">Your feedback</label>
+          <textarea id="reviewText" name="reviewText" required minlength="15" maxlength="1200" placeholder="Describe what you used, what was useful and what could be improved."></textarea>
+          <small>Please do not include account numbers, passwords, private financial information or claims of guaranteed trading profits.</small>
+        </div>
+      </div>
+      <button class="ts-btn primary" type="submit">Send review for moderation</button>
+    </form>
+    <div class="ts-note">Moderation policy: we may check whether the person used the product or service, remove personal information, request clarification and decline abusive, fraudulent or misleading submissions. We will not change the meaning of a review to make it more positive.</div>
+  </div></section>
+</main>
+<footer class="ts-footer">
+  <strong>TradeSphere.</strong>
+  <p>Education. Analysis. Practical trading tools.</p>
+  <p>Trading involves risk. Educational resources are not financial advice and do not guarantee profits.</p>
+  <p>© <span data-current-year></span> TradeSphere. All rights reserved.</p>
+</footer>
+<script src="commerce.js" defer></script>
+</body>
+</html>
