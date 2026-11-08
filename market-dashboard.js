@@ -247,12 +247,10 @@ function subscribeToMarkets(activeSymbols) {
 
     const state = marketState[market.name];
 
-    const actualSymbol =
-  match.underlying_symbol || match.symbol;
+    const actualSymbol = match
+      ? (match.underlying_symbol || match.symbol)
+      : null;
 
-state.pipSize = Number(
-  match.pip_size || match.pip || 2
-);
     if (!match || !actualSymbol) {
       state.symbol = null;
       state.error = "Symbol not found in Deriv response";
@@ -261,14 +259,7 @@ state.pipSize = Number(
     }
 
     state.symbol = actualSymbol;
-state.error = null;
-
-if (Number.isFinite(Number(match.pip_size))) {
-  state.pipSize = Math.min(
-    10,
-    Math.max(0, Number(match.pip_size))
-  );
-}
+    state.error = null;
 
     availableCount++;
 
